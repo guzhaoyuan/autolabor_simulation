@@ -146,6 +146,10 @@ void SimulationBase::run(){
   odom_pub_ = nh_.advertise<nav_msgs::Odometry>("odom", 10);
   pub_odom_timer_ = nh_.createTimer(ros::Duration(1.0/rate_), &SimulationBase::pubOdomCallback, this);
   ros::spin();
+  // while (ros::ok()) {
+  //   ros::spinOnce();
+  //   std::cout << rate_ << std::endl;
+  // }
 }
 
 }
