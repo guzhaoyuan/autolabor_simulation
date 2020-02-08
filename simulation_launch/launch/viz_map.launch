@@ -1,0 +1,12 @@
+<launch>
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find simulation_launch)/rviz/map.rviz"/>
+
+  <node pkg="map_server" type="map_server" name="map_server" args="$(find autolabor_simulation_stage)/map/MG_map.yaml" >
+    <!-- <remap from="map" to="reserve_map" />
+    <remap from="map_metadata" to="reserve_map_metadata" /> -->
+  </node>
+
+  <node pkg="tf" type="static_transform_publisher" name="world2map" args="0.0 0.0 0.0 0.0 0.0 0.0 /world /map 10" />
+
+</launch>

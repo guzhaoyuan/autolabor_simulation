@@ -120,6 +120,9 @@ void SimulationBase::pubOdomCallback(const ros::TimerEvent &event){
   real_map_trans.transform.translation.y = baselink2realmap.getOrigin().getY();
   real_map_trans.transform.translation.z = 0.0;
   real_map_trans.transform.rotation = tf::createQuaternionMsgFromYaw(tf::getYaw(baselink2realmap.getRotation()));
+  assert(real_map_trans.transform.translation.x - (-cos(real_th_)*real_x_-sin(real_th_)*real_y_)<1e-10);
+  assert(real_map_trans.transform.translation.y - (sin(real_th_)*real_x_-cos(real_th_)*real_y_)<1e-10);
+  assert(tf::getYaw(baselink2realmap.getRotation()) - (-real_th_) < 1e-10);
   tf_broadcaster_.sendTransform(real_map_trans);
 
   // publish topic

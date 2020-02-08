@@ -231,7 +231,7 @@ void SimulationLidar::run(){
   ros::spin();
 }
 
-}
+} // namespace autolabor_simulation
 
 int main(int argc, char **argv){
   ros::init(argc, argv, "simulation_lidar_node");
