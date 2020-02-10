@@ -83,6 +83,7 @@ void SimulationLidar::getPose(tf::StampedTransform &transform, double &start_ang
 
   transform.getBasis().getRPY(roll, pitch, yaw);
   if (pow(roll,2) + pow(pitch,2) > esp){
+      ROS_INFO("[Lidar Node] Base not flat!");
       start_angle = yaw + max_angle_;
       reverse = -1.0;
   }else{
