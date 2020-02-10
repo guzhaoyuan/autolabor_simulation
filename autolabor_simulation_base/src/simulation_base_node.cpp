@@ -4,6 +4,8 @@
 #include "nav_msgs/Odometry.h"
 #include "tf/transform_datatypes.h"
 #include "geometry_msgs/Quaternion.h"
+#include "geometry_msgs/PoseWithCovarianceStamped.h"
+#include "geometry_msgs/TwistWithCovarianceStamped.h"
 #include "autolabor_simulation_base/simulation_base_node.h"
 
 namespace autolabor_simulation {
@@ -14,6 +16,7 @@ SimulationBase::SimulationBase():cur_v_linear_(0.0),cur_v_theta_(0.0),tar_v_line
   private_node.param("odom_frame", odom_frame_, std::string("odom"));
   private_node.param("base_link_frame", base_link_frame_, std::string("base_link"));
   private_node.param("real_map_frame", real_map_frame_, std::string("real_map"));
+  private_node.param("map_frame", map_frame_, std::string("map"));
 
   private_node.param("noise_v_linear", noise_v_linear_, 0.0);
   private_node.param("noise_v_theta", noise_v_theta_, 0.0);
@@ -25,6 +28,7 @@ SimulationBase::SimulationBase():cur_v_linear_(0.0),cur_v_theta_(0.0),tar_v_line
   private_node.param("max_v_theta", max_v_theta_, 1.57);
 
   private_node.param("rate", rate_, 30);
+  private_node.param("rate_positioning", rate_pos_, 10);
 
   private_node.param("is_tf_broadcast", is_tf_broadcast_, true);
 
@@ -63,7 +67,7 @@ void SimulationBase::cmdReceived(const geometry_msgs::Twist::ConstPtr& cmd){
 
 void SimulationBase::updateOdometry(){
   double dt = (current_time_ - last_time_).toSec();
-  double ds, dth, ns, nth;
+  
   if (tar_v_linear_ > cur_v_linear_){
     cur_v_linear_ = std::min(std::min(tar_v_linear_, max_v_linear_), cur_v_linear_ + max_a_linear_*dt);
   }else if (tar_v_linear_ < cur_v_linear_){
@@ -96,7 +100,7 @@ void SimulationBase::updateOdometry(){
 void SimulationBase::pubOdomCallback(const ros::TimerEvent &event){
   current_time_ = ros::Time::now();
   updateOdometry();
-
+  
   // tf : odom --> base_link
   geometry_msgs::TransformStamped odom_trans;
   odom_trans.header.stamp = current_time_;
@@ -120,9 +124,9 @@ void SimulationBase::pubOdomCallback(const ros::TimerEvent &event){
   real_map_trans.transform.translation.y = baselink2realmap.getOrigin().getY();
   real_map_trans.transform.translation.z = 0.0;
   real_map_trans.transform.rotation = tf::createQuaternionMsgFromYaw(tf::getYaw(baselink2realmap.getRotation()));
-  assert(real_map_trans.transform.translation.x - (-cos(real_th_)*real_x_-sin(real_th_)*real_y_)<1e-10);
-  assert(real_map_trans.transform.translation.y - (sin(real_th_)*real_x_-cos(real_th_)*real_y_)<1e-10);
-  assert(tf::getYaw(baselink2realmap.getRotation()) - (-real_th_) < 1e-10);
+  // assert(real_map_trans.transform.translation.x - (-cos(real_th_)*real_x_-sin(real_th_)*real_y_)<1e-10);
+  // assert(real_map_trans.transform.translation.y - (sin(real_th_)*real_x_-cos(real_th_)*real_y_)<1e-10);
+  // assert(tf::getYaw(baselink2realmap.getRotation()) - (-real_th_) < 1e-10);
   tf_broadcaster_.sendTransform(real_map_trans);
 
   // publish topic
@@ -137,17 +141,61 @@ void SimulationBase::pubOdomCallback(const ros::TimerEvent &event){
   odom_msg.pose.pose.orientation.y = odom_trans.transform.rotation.y;
   odom_msg.pose.pose.orientation.z = odom_trans.transform.rotation.z;
   odom_msg.pose.pose.orientation.w = odom_trans.transform.rotation.w;
-  odom_msg.twist.twist.linear.x = cur_v_linear_;
-  odom_msg.twist.twist.angular.z = cur_v_theta_;
+  // odom_msg.twist.twist.linear.x = cur_v_linear_;
+  // odom_msg.twist.twist.angular.z = cur_v_theta_;
+  odom_msg.twist.twist.linear.x = ns;
+  odom_msg.twist.twist.angular.z = nth;
+  odom_msg.twist.covariance = boost::array<double, 36>({
+    std::pow(0 + noise_v_linear_, 2), 0., 0., 0., 0., 0.,
+    0., 0., 0., 0., 0., 0.,
+    0., 0., 0., 0., 0., 0.,
+    0., 0., 0., 0., 0., 0.,
+    0., 0., 0., 0., 0., 0.,
+    0., 0., 0., 0., 0., std::pow(cur_v_linear_ * (0 + noise_v_theta_), 2)});
   odom_pub_.publish(odom_msg);
+
+  geometry_msgs::TwistWithCovarianceStamped twist;
+  twist.header = odom_msg.header;
+  twist.header.frame_id = base_link_frame_;
+  twist.twist = odom_msg.twist;
+  twist_pub_.publish(twist); // publish twist topic.
+
   // update time
   last_time_ = current_time_;
+}
+
+void SimulationBase::pubPosCallback(const ros::TimerEvent &event){
+  // Distort real pose to get a 'measurement'.
+  geometry_msgs::PoseWithCovarianceStamped beacon_data; // map -> base_link.
+  beacon_data.header.frame_id = map_frame_;
+  beacon_data.header.stamp = ros::Time::now();
+  const double noise_x_theta_ = 0.02, noise_x_linear_ = 0.02;
+  beacon_data.pose.pose.position.x = real_x_ + gaussRand(0, noise_x_linear_);
+  beacon_data.pose.pose.position.y = real_y_ + gaussRand(0, noise_x_linear_);
+  auto beacon_q = tf::createQuaternionMsgFromYaw(real_th_ + gaussRand(0, noise_x_theta_));
+  beacon_data.pose.pose.orientation.x = beacon_q.x;
+  beacon_data.pose.pose.orientation.y = beacon_q.y;
+  beacon_data.pose.pose.orientation.z = beacon_q.z;
+  beacon_data.pose.pose.orientation.w = beacon_q.w;
+
+  beacon_data.pose.covariance = boost::array<double, 36>({
+    std::pow(0 + noise_x_linear_, 2), 0., 0., 0., 0., 0.,
+    0., std::pow(0 + noise_x_linear_, 2), 0., 0., 0., 0.,
+    0., 0., 0., 0., 0., 0.,
+    0., 0., 0., 0., 0., 0.,
+    0., 0., 0., 0., 0., 0.,
+    0., 0., 0., 0., 0., std::pow(0 + noise_x_theta_, 2)});
+
+  pos_pub_.publish(beacon_data);
 }
 
 void SimulationBase::run(){
   cmd_sub_ = nh_.subscribe<geometry_msgs::Twist>("cmd_vel", 10, &SimulationBase::cmdReceived, this);
   odom_pub_ = nh_.advertise<nav_msgs::Odometry>("odom", 10);
+  twist_pub_ = nh_.advertise<geometry_msgs::TwistWithCovarianceStamped>("twist", 10);
+  pos_pub_ = nh_.advertise<geometry_msgs::PoseWithCovarianceStamped>("pose", 10);
   pub_odom_timer_ = nh_.createTimer(ros::Duration(1.0/rate_), &SimulationBase::pubOdomCallback, this);
+  pub_pos_timer_ = nh_.createTimer(ros::Duration(1.0/rate_pos_), &SimulationBase::pubPosCallback, this);
   ros::spin();
   // while (ros::ok()) {
   //   ros::spinOnce();

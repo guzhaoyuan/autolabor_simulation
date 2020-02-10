@@ -19,6 +19,7 @@ private:
   double gaussRand(double mu, double sigma);
   void cmdReceived(const geometry_msgs::Twist::ConstPtr& cmd);
   void pubOdomCallback(const ros::TimerEvent& event);
+  void pubPosCallback(const ros::TimerEvent& event);
 
   void updateOdometry();
 
@@ -28,7 +29,10 @@ private:
   ros::NodeHandle nh_;
   ros::Subscriber cmd_sub_;
   ros::Publisher odom_pub_;
+  ros::Publisher twist_pub_;
+  ros::Publisher pos_pub_;
   ros::Timer pub_odom_timer_;
+  ros::Timer pub_pos_timer_;
 
   boost::mutex cmd_mutex_;
 
@@ -38,7 +42,7 @@ private:
 
   double noise_v_linear_, noise_v_theta_;
 
-  int rate_;
+  int rate_, rate_pos_;
   double max_a_linear_, max_a_theta_;
   double max_v_linear_, max_v_theta_;
   double cur_v_linear_, cur_v_theta_;
@@ -46,6 +50,8 @@ private:
   double real_x_, real_y_, real_th_;
   double odom_x_, odom_y_, odom_th_;
   bool   is_tf_broadcast_;
+
+  double ds, dth, ns, nth;
 };
 }
 
