@@ -39,9 +39,24 @@ namespace autolabor_simulation {
         }
     }
 
+    void SimulationLocation::pubEstimationCallback(const ros::TimerEvent &event) {
+        tf::StampedTransform base_link_to_map_transform;
+        try {
+            // Get the latest transform.
+            tf_.lookupTransform("map", "base_link", ros::Time(0), base_link_to_map_transform);
+            geometry_msgs::TransformStamped real_map_to_robot2_trans;
+            tf::transformStampedTFToMsg(base_link_to_map_transform, real_map_to_robot2_trans);
+            real_map_to_robot2_trans.header.frame_id = real_map_frame_;
+            real_map_to_robot2_trans.child_frame_id = "robot2/base_link";
+            tf_broadcaster_.sendTransform(real_map_to_robot2_trans);
+        } catch (tf2::TransformException &ex) {
+            // ROS_INFO("tf2_ros::Buffer::lookupTransform failed: %s", ex.what());
+        }
+    }
+
     void SimulationLocation::run() {
         location_pub_ = nh_.advertise<geometry_msgs::PointStamped>("location_pos", 100);
-        pub_location_timer_ = nh_.createTimer(ros::Duration(1.0 / rate_), &SimulationLocation::pubLocationCallback, this);
+        pub_location_timer_ = nh_.createTimer(ros::Duration(1.0 / rate_), &SimulationLocation::pubEstimationCallback, this);
         ros::spin();
     }
 

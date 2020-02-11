@@ -5,6 +5,7 @@
 #include <ros/ros.h>
 
 #include <tf/transform_listener.h>
+#include "tf/transform_broadcaster.h"
 #include <geometry_msgs/PointStamped.h>
 
 namespace autolabor_simulation {
@@ -20,6 +21,7 @@ namespace autolabor_simulation {
 
     private:
         void pubLocationCallback(const ros::TimerEvent &event);
+        void pubEstimationCallback(const ros::TimerEvent &event);
 
     private:
         std::string baselink_frame_, real_map_frame_, location_frame_;
@@ -28,6 +30,7 @@ namespace autolabor_simulation {
         int rate_;
 
         tf::TransformListener tf_;
+        tf::TransformBroadcaster tf_broadcaster_;
         ros::NodeHandle nh_;
 
         ros::Publisher location_pub_;

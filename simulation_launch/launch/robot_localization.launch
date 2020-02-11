@@ -23,7 +23,7 @@
     <param name="max_v_theta" value="1.57"/>
 
     <param name="rate" value="100"/>
-    <param name="rate_positioning" value="1"/>
+    <param name="rate_positioning" value="10"/>
   </node>
 
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
@@ -74,6 +74,28 @@
     <param name="lidar_frame" value="lidar" />
   </node>
 
+  <!-- robot_localization EKF node for the odom frame -->
+  <node pkg="robot_localization" type="ekf_localization_node" name="robot_localization_ekf_node_odom"  clear_params="true">
+    <param name="frequency" value="10" />  
+    <param name="sensor_timeout" value="0.2" />  
+    <param name="two_d_mode" value="true" />
+    <param name="publish_tf" value="true" />
+    <param name="map_frame" value="map" />
+    <param name="odom_frame" value="odom" />
+    <param name="base_link_frame" value="base_link" />
+    <param name="world_frame" value="odom" />
+    <param name="print_diagnostics" value="true" />
+    <!-- <param name="twist0" value="twist" />
+    <param name="twist0_differential" value="false"/>
+    <rosparam param="twist0_config">[false, false, false, false, false, false,
+                                     true, true, false, false, false, true,
+                                     false, false, false]</rosparam> -->
+    <param name="odom0" value="odom" />
+    <rosparam param="odom0_config">[true, true, false, false, false, true,
+                                     true, true, false, false, false, true,
+                                     false, false, false]</rosparam>
+  </node>
+
   <!-- robot_localization EKF node for the map frame -->
   <node pkg="robot_localization" type="ekf_localization_node" name="robot_localization_ekf_node_map"  clear_params="true">
     <param name="frequency" value="10" />  
@@ -86,6 +108,7 @@
     <param name="world_frame" value="map" />
     <param name="print_diagnostics" value="true" />
     <!-- <param name="twist0" value="twist" />
+    <param name="twist0_differential" value="false"/>
     <rosparam param="twist0_config">[false, false, false, false, false, false,
                                      true, true, false, false, false, true,
                                      false, false, false]</rosparam> -->
@@ -100,5 +123,8 @@
     <remap from="odometry/filtered" to="odometry/filtered_map"/>
   </node>
 
+  <node pkg="autolabor_simulation_location" type="simulation_location_node" name="estimation_visualization">
+    <param name="rate" value="50"/>
+  </node>
 
 </launch>
