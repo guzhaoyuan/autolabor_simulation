@@ -129,7 +129,7 @@ void SimulationBase::pubOdomCallback(const ros::TimerEvent &event){
   // assert(tf::getYaw(baselink2realmap.getRotation()) - (-real_th_) < 1e-10);
   tf_broadcaster_.sendTransform(real_map_trans);
 
-  // publish topic
+  // publish odometry topic
   nav_msgs::Odometry odom_msg;
   odom_msg.header.frame_id = odom_frame_;
   odom_msg.child_frame_id = base_link_frame_;
@@ -141,8 +141,14 @@ void SimulationBase::pubOdomCallback(const ros::TimerEvent &event){
   odom_msg.pose.pose.orientation.y = odom_trans.transform.rotation.y;
   odom_msg.pose.pose.orientation.z = odom_trans.transform.rotation.z;
   odom_msg.pose.pose.orientation.w = odom_trans.transform.rotation.w;
-  // odom_msg.twist.twist.linear.x = cur_v_linear_;
-  // odom_msg.twist.twist.angular.z = cur_v_theta_;
+  odom_msg.pose.covariance = boost::array<double, 36>({
+    std::pow(0 + noise_v_linear_, 2) * 0.1, 0., 0., 0., 0., 0.,
+    0., std::pow(0 + noise_v_linear_, 2)  * 0.1, 0., 0., 0., 0.,
+    0., 0., 0., 0., 0., 0.,
+    0., 0., 0., 0., 0., 0.,
+    0., 0., 0., 0., 0., 0.,
+    0., 0., 0., 0., 0., 0.1 * std::pow(cur_v_linear_ * (0 + noise_v_theta_), 2)});
+
   odom_msg.twist.twist.linear.x = ns;
   odom_msg.twist.twist.angular.z = nth;
   odom_msg.twist.covariance = boost::array<double, 36>({
@@ -159,6 +165,20 @@ void SimulationBase::pubOdomCallback(const ros::TimerEvent &event){
   twist.header.frame_id = base_link_frame_;
   twist.twist = odom_msg.twist;
   twist_pub_.publish(twist); // publish twist topic.
+
+  tf::StampedTransform base_link_to_map_transform;
+  try {
+    // Get the latest transform.
+    tf_listener_.lookupTransform("map", "base_link", ros::Time(0), base_link_to_map_transform);
+    geometry_msgs::TransformStamped real_map_to_robot2_trans;
+    tf::transformStampedTFToMsg(base_link_to_map_transform, real_map_to_robot2_trans);
+    // real_map_to_robot2_trans.header.stamp = current_time_;
+    real_map_to_robot2_trans.header.frame_id = real_map_frame_;
+    real_map_to_robot2_trans.child_frame_id = "robot2/base_link";
+    tf_broadcaster_.sendTransform(real_map_to_robot2_trans);
+  } catch (tf2::TransformException &ex) {
+    // ROS_INFO("tf2_ros::Buffer::lookupTransform failed: %s", ex.what());
+  }
 
   // update time
   last_time_ = current_time_;
