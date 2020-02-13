@@ -111,7 +111,7 @@ void SimulationBase::pubOdomCallback(const ros::TimerEvent &event){
   odom_trans.transform.translation.z = 0.0;
   odom_trans.transform.rotation = tf::createQuaternionMsgFromYaw(odom_th_);
   if (is_tf_broadcast_) {
-    // tf_broadcaster_.sendTransform(odom_trans);
+    tf_broadcaster_.sendTransform(odom_trans);
   }
 
   geometry_msgs::TransformStamped real_map_trans;

@@ -12,6 +12,7 @@
     <param name="odom_frame" value="odom"/>
     <param name="base_link_frame" value="base_link"/>
     <param name="real_map_frame" value="real_map"/>
+    <param name="is_tf_broadcast" value="false"/>
 
     <param name="noise_v_linear" value="0.1"/>
     <param name="noise_v_theta" value="0.1"/>
