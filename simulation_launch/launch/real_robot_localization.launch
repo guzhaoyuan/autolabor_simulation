@@ -1,7 +1,7 @@
 <launch>
   <arg name="model" />
 
-  <param name="use_sim_time" value="false"/>
+  <param name="use_sim_time" value="true"/>
   <param name="robot_description" textfile="$(find autolabor_description)/urdf/autolabor_mini.urdf" />
  
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" >
@@ -11,29 +11,35 @@
 
   <!-- robot_localization EKF node for the odom frame -->
   <node pkg="robot_localization" type="ekf_localization_node" name="robot_localization_ekf_node_odom"  clear_params="true">
-    <param name="frequency" value="100" />  
+    <param name="frequency" value="10" />
     <param name="sensor_timeout" value="0.2" />
     <param name="predict_to_current_time" value="true"/>
     <param name="two_d_mode" value="true" />
     <param name="publish_tf" value="true" />
     <param name="map_frame" value="map" />
-    <param name="odom_frame" value="camera_odom_frame" />
+    <param name="odom_frame" value="odom" />
     <param name="base_link_frame" value="base_link" />
     <!-- <param name="base_link_frame" value="camera_pose_frame" /> -->
-    <param name="world_frame" value="camera_odom_frame" />
+    <param name="world_frame" value="odom" />
     <param name="print_diagnostics" value="true" />
     <!-- <param name="twist0" value="twist" />
     <param name="twist0_differential" value="false"/>
     <rosparam param="twist0_config">[false, false, false, false, false, false,
                                      true, true, false, false, false, true,
                                      false, false, false]</rosparam> -->
-    <param name="odom0" value="/camera/odom/sample" />
+    <param name="odom0" value="camera_odom_modified" />
     <rosparam param="odom0_config">[true, true, false, false, false, true,
                                      true, true, false, false, false, true,
+                                     false, false, false]</rosparam>
+    <param name="odom1" value="lidar_odom" />
+    <rosparam param="odom1_config">[true, true, false, false, false, true,
+                                     false, false, false, false, false, false,
                                      false, false, false]</rosparam>
   </node>
   
   <!-- <node pkg="tf" type="static_transform_publisher" name="robot_to_camera" args="0.0 0.0 0.0 0.0 0.0 0.0 /camera_pose_frame /base_link 200" /> -->
+  <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0.0 0.0 0.0 0.0 0.0 0.0 /odom /map 200" />
+  <node pkg="tf" type="static_transform_publisher" name="base_link_to_velodyne" args="0.0 0.0 0.0 0.0 0.0 0.0 /base_link /velodyne 200" />
   
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find simulation_launch)/rviz/real_localization.rviz" />
   

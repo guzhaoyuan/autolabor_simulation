@@ -1,7 +1,4 @@
-
-
 #include <autolabor_simulation_location/simulation_location_node.h>
-
 
 namespace autolabor_simulation {
 
