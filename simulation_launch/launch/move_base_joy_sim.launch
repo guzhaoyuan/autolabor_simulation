@@ -34,17 +34,17 @@
 
 
     <node pkg="map_server" type="map_server" name="map_server" args="$(find autolabor_simulation_stage)/map/MG_map.yaml" >
-        <remap from="map" to="reserve_map" />
-        <remap from="map_metadata" to="reserve_map_metadata" />
+        <remap from="map" to="map" />
+        <remap from="map_metadata" to="map_metadata" />
     </node>
 
-    <node name="simulation_stage" pkg="autolabor_simulation_stage" type="simulation_stage_node" output="screen">
+    <!-- <node name="simulation_stage" pkg="autolabor_simulation_stage" type="simulation_stage_node" output="screen">
         <param name="input_topic" value="reserve_map" />
         <param name="output_topic" value="stage_map" />
         <param name="real_map_frame" value="real_map" />
-    </node>
+    </node> -->
 
-    <node name="simulation_lidar" pkg="autolabor_simulation_lidar" type="simulation_lidar_node" output="screen">
+    <!-- <node name="simulation_lidar" pkg="autolabor_simulation_lidar" type="simulation_lidar_node" output="screen">
         <param name="min_angle" value="-3.141592654" />
         <param name="max_angle" value="3.141592654" />
 
@@ -58,7 +58,7 @@
         <param name="stage_map_topic" value="stage_map" />
         <param name="global_frame" value="real_map" />
         <param name="lidar_frame" value="lidar" />
-    </node>
+    </node> -->
 
     <!-- <node name="location_fusion" pkg="location_fusion" type="simple_fusion">		
         <param name="map_frame" value="map" />
@@ -83,11 +83,11 @@
     </node> -->
 
     <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
-        <rosparam file="$(find simulation_launch)/track_param/move_base_params.yaml" command="load" />
-        <rosparam file="$(find simulation_launch)/track_param/global_costmap_params.yaml" command="load" ns="global_costmap"/>
-        <rosparam file="$(find simulation_launch)/track_param/local_costmap_params.yaml" command="load" ns="local_costmap"/>
-        <rosparam file="$(find simulation_launch)/track_param/record_path_global_planner_params.yaml" command="load" ns="RecordPathPlanner"/>
-        <rosparam file="$(find simulation_launch)/track_param/dwa_local_planner_params.yaml" command="load" ns="DWAPlannerROS"/>
+        <rosparam file="$(find simulation_launch)/param/move_base_params.yaml" command="load" />
+        <rosparam file="$(find simulation_launch)/param/global_costmap_params.yaml" command="load" ns="global_costmap"/>
+        <rosparam file="$(find simulation_launch)/param/local_costmap_params.yaml" command="load" ns="local_costmap"/>
+        <rosparam file="$(find simulation_launch)/param/dwa_local_planner_params.yaml" command="load" ns="DWAPlannerROS"/>
+        <rosparam file="$(find simulation_launch)/param/global_planner_params.yaml" command="load" ns="GlobalPlanner"/>
     </node>
 
     <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0.0 0.0 0.0 0.0 0.0 0.0 /map /odom 10" />
