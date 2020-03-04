@@ -1,0 +1,94 @@
+<launch>
+
+    <param name="robot_description" textfile="$(find autolabor_description)/urdf/autolabor_mini.urdf" />
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+
+    <!-- 车辆底层模拟 -->
+    <node pkg="autolabor_simulation_base" type="simulation_base_node" name="autolabor_driver" output="screen">
+        <param name="map_frame" value="map"/>
+        <param name="odom_frame" value="odom"/>
+        <param name="base_link_frame" value="base_link"/>
+        <param name="real_map_frame" value="real_map"/>
+
+        <param name="noise_v_linear" value="0.1"/>
+        <param name="noise_v_theta" value="0.1"/>
+
+        <param name="max_a_linear" value="999.0"/>
+        <param name="max_a_theta" value="999.0"/>
+
+        <param name="max_v_linear" value="1.0"/>
+        <param name="max_v_theta" value="1.57"/>
+
+        <param name="rate" value="20"/>
+        <param name="is_tf_broadcast" value="true"/>
+    </node>
+
+    <!-- Joy stick control -->
+    <node name="joy_node" pkg="joy" type="joy_node" />
+    <rosparam file="$(find simulation_launch)/param/teleop.yaml" command="load" />
+    <node name="joy_teleop" pkg="joy_teleop" type="joy_teleop.py"/>
+
+    <!-- Visualization -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find simulation_launch)/rviz/move_base.rviz" />
+
+
+    <node pkg="map_server" type="map_server" name="map_server" args="$(find autolabor_simulation_stage)/map/MG_map.yaml" >
+        <remap from="map" to="reserve_map" />
+        <remap from="map_metadata" to="reserve_map_metadata" />
+    </node>
+
+    <node name="simulation_stage" pkg="autolabor_simulation_stage" type="simulation_stage_node" output="screen">
+        <param name="input_topic" value="reserve_map" />
+        <param name="output_topic" value="stage_map" />
+        <param name="real_map_frame" value="real_map" />
+    </node>
+
+    <node name="simulation_lidar" pkg="autolabor_simulation_lidar" type="simulation_lidar_node" output="screen">
+        <param name="min_angle" value="-3.141592654" />
+        <param name="max_angle" value="3.141592654" />
+
+        <param name="min_distance" value="0.15" />
+        <param name="max_distance" value="6.00" />
+
+        <param name="size" value="400" />
+        <param name="rate" value="10" />
+        <param name="noise" value="0.01" />
+
+        <param name="stage_map_topic" value="stage_map" />
+        <param name="global_frame" value="real_map" />
+        <param name="lidar_frame" value="lidar" />
+    </node>
+
+    <!-- <node name="location_fusion" pkg="location_fusion" type="simple_fusion">		
+        <param name="map_frame" value="map" />
+        <param name="odom_frame" value="odom" />
+        <param name="base_link_frame" value="base_link" />
+
+        <param name="buffer_size" value="50" />
+        <param name="distance_interval" value="0.1" />
+        <param name="rate" value="20" />
+    </node>
+
+    <node name="path_saver" pkg="path_server" type="record_path_node">
+        <param name="map_frame" value="map" />
+        <param name="base_link_frame" value="base_link" />
+        <param name="odom_topic" value="odom" />
+        <param name="distance_interval" value="0.1" />
+    </node>
+
+    <node name="path_loader" pkg="path_server" type="load_path_node">
+        <param name="map_frame" value="map" />
+        <param name="path_file" value="simulation_path" />
+    </node> -->
+
+    <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+        <rosparam file="$(find simulation_launch)/track_param/move_base_params.yaml" command="load" />
+        <rosparam file="$(find simulation_launch)/track_param/global_costmap_params.yaml" command="load" ns="global_costmap"/>
+        <rosparam file="$(find simulation_launch)/track_param/local_costmap_params.yaml" command="load" ns="local_costmap"/>
+        <rosparam file="$(find simulation_launch)/track_param/record_path_global_planner_params.yaml" command="load" ns="RecordPathPlanner"/>
+        <rosparam file="$(find simulation_launch)/track_param/dwa_local_planner_params.yaml" command="load" ns="DWAPlannerROS"/>
+    </node>
+
+    <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0.0 0.0 0.0 0.0 0.0 0.0 /map /odom 10" />
+</launch>
