@@ -44,7 +44,7 @@
         <param name="real_map_frame" value="real_map" />
     </node> -->
 
-    <!-- <node name="simulation_lidar" pkg="autolabor_simulation_lidar" type="simulation_lidar_node" output="screen">
+    <node name="simulation_lidar" pkg="autolabor_simulation_lidar" type="simulation_lidar_node" output="screen">
         <param name="min_angle" value="-3.141592654" />
         <param name="max_angle" value="3.141592654" />
 
@@ -55,10 +55,10 @@
         <param name="rate" value="10" />
         <param name="noise" value="0.01" />
 
-        <param name="stage_map_topic" value="stage_map" />
-        <param name="global_frame" value="real_map" />
+        <param name="stage_map_topic" value="map" />
+        <param name="global_frame" value="map" />
         <param name="lidar_frame" value="lidar" />
-    </node> -->
+    </node>
 
     <!-- <node name="location_fusion" pkg="location_fusion" type="simple_fusion">		
         <param name="map_frame" value="map" />
@@ -82,12 +82,12 @@
         <param name="path_file" value="simulation_path" />
     </node> -->
 
-    <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
-        <rosparam file="$(find simulation_launch)/param/move_base_params.yaml" command="load" />
-        <rosparam file="$(find simulation_launch)/param/global_costmap_params.yaml" command="load" ns="global_costmap"/>
-        <rosparam file="$(find simulation_launch)/param/local_costmap_params.yaml" command="load" ns="local_costmap"/>
-        <rosparam file="$(find simulation_launch)/param/dwa_local_planner_params.yaml" command="load" ns="DWAPlannerROS"/>
-        <rosparam file="$(find simulation_launch)/param/global_planner_params.yaml" command="load" ns="GlobalPlanner"/>
+    <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen" clear_params="true" >
+        <rosparam file="$(find simulation_launch)/my_param/move_base_params.yaml" command="load" />
+        <rosparam file="$(find simulation_launch)/my_param/global_costmap_params.yaml" command="load" ns="global_costmap"/>
+        <rosparam file="$(find simulation_launch)/my_param/local_costmap_params.yaml" command="load" ns="local_costmap"/>
+        <rosparam file="$(find simulation_launch)/my_param/global_planner_params.yaml" command="load" ns="GlobalPlanner"/>
+        <rosparam file="$(find simulation_launch)/my_param/base_local_planner_params.yaml" command="load" ns="DWAPlannerROS"/>
     </node>
 
     <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0.0 0.0 0.0 0.0 0.0 0.0 /map /odom 10" />
