@@ -10,9 +10,10 @@ int first_uwb = 0;
 
 double vo_pos_cov = 0.0;
 double uwb_pos_cov = 0.0;
-double init_odom_yaw = 0.75 * M_PI;
+double init_odom_yaw = -0.75 * M_PI;
 
 Eigen::Matrix4d first_cam_odom = Eigen::Matrix4d::Identity();
+Eigen::Vector3d first_uwb_pos = Eigen::Vector3d::Zero();
 
 void vo_odom_callback(const nav_msgs::Odometry::ConstPtr& msg) {
   if (first_vo) {
@@ -34,7 +35,8 @@ void vo_odom_callback(const nav_msgs::Odometry::ConstPtr& msg) {
   
   Eigen::Matrix4d curr_wrt_first = first_cam_odom.inverse() * curr_cam_odom;
   Eigen::Matrix3d curr_wrt_first_R = curr_wrt_first.topLeftCorner(3, 3);
-  Eigen::Matrix3d init_guess_for_odom_frame_yaw = Eigen::AngleAxisd(init_odom_yaw, Eigen::Vector3d::UnitZ()).toRotationMatrix();
+  // Eigen::Matrix3d init_guess_for_odom_frame_yaw = Eigen::AngleAxisd(init_odom_yaw, Eigen::Vector3d::UnitZ()).toRotationMatrix();
+  Eigen::Matrix3d init_guess_for_odom_frame_yaw = Eigen::AngleAxisd(0, Eigen::Vector3d::UnitZ()).toRotationMatrix();
   Eigen::Quaterniond curr_wrt_first_q(curr_wrt_first_R * init_guess_for_odom_frame_yaw);
 
   nav_msgs::Odometry modified_msg = *msg;
@@ -63,6 +65,9 @@ void vo_odom_callback(const nav_msgs::Odometry::ConstPtr& msg) {
 void uwb_odom_callback(const nav_msgs::Odometry::ConstPtr& msg) {
   if (first_uwb < 5) {
     first_uwb ++;
+    first_uwb_pos = Eigen::Vector3d(msg->pose.pose.position.x,
+                                    msg->pose.pose.position.y,
+                                    msg->pose.pose.position.z);
     return;
   }
 
@@ -71,6 +76,14 @@ void uwb_odom_callback(const nav_msgs::Odometry::ConstPtr& msg) {
   modified_msg.header.frame_id = "map";
   modified_msg.child_frame_id = "base_link";
   
+  // Try to rotate the UWB sensor reading to align with the map frame.
+  // Assume the first UWB reading is at the odom frame. To make alignment, the initial odom frame angle is guessed.
+  Eigen::Vector3d position_W = Eigen::Vector3d(msg->pose.pose.position.x, msg->pose.pose.position.y, msg->pose.pose.position.z) - first_uwb_pos;
+  Eigen::Vector3d position_O = Eigen::AngleAxisd(init_odom_yaw, Eigen::Vector3d::UnitZ()).toRotationMatrix() * position_W;
+  modified_msg.pose.pose.position.x = position_O(0);
+  modified_msg.pose.pose.position.y = position_O(1);
+  modified_msg.pose.pose.position.z = 0;
+
   modified_msg.pose.covariance = {uwb_pos_cov, 0., 0., 0., 0., 0.,
                                   0., uwb_pos_cov, 0., 0., 0., 0.,
                                   0., 0., 0., 0., 0., 0.,

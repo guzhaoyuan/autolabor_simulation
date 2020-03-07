@@ -5,7 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /Visual Odometry1/Shape1
+        - /UWB Odometry1/Shape1
       Splitter Ratio: 0.30549898743629456
     Tree Height: 725
   - Class: rviz/Selection
@@ -60,11 +60,11 @@ Visualization Manager:
         base_link:
           Value: true
         lidar:
-          Value: true
+          Value: false
         map:
           Value: true
         odom:
-          Value: true
+          Value: false
       Marker Scale: 1
       Name: TF
       Show Arrows: false
@@ -121,7 +121,7 @@ Visualization Manager:
           Value: true
         Value: false
       Enabled: true
-      Keep: 10
+      Keep: 3
       Name: UWB Odometry
       Position Tolerance: 0.10000000149011612
       Shape:
@@ -131,7 +131,7 @@ Visualization Manager:
         Color: 255; 25; 0
         Head Length: 0.30000001192092896
         Head Radius: 0.10000000149011612
-        Shaft Length: 0.5
+        Shaft Length: 0.20000000298023224
         Shaft Radius: 0.05000000074505806
         Value: Arrow
       Topic: /dwm/odom
@@ -155,7 +155,7 @@ Visualization Manager:
           Value: true
         Value: false
       Enabled: true
-      Keep: 5
+      Keep: 3
       Name: Visual Odometry
       Position Tolerance: 0.10000000149011612
       Shape:
@@ -165,19 +165,19 @@ Visualization Manager:
         Color: 0; 0; 255
         Head Length: 0.30000001192092896
         Head Radius: 0.10000000149011612
-        Shaft Length: 0.5
+        Shaft Length: 0.20000000298023224
         Shaft Radius: 0.05000000074505806
         Value: Arrow
       Topic: /t265/odom
       Unreliable: false
       Value: true
     - Class: rviz/Axes
-      Enabled: true
+      Enabled: false
       Length: 1
       Name: Axes
       Radius: 0.10000000149011612
       Reference Frame: <Fixed Frame>
-      Value: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 0; 0; 0
@@ -206,7 +206,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 8.18438720703125
+      Distance: 4.195666313171387
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
