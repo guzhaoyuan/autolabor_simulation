@@ -2,7 +2,7 @@
 
 import rospy
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import Point
+import numpy as np
 
 t265_pub = rospy.Publisher('t265/odom', Odometry, queue_size=10)
 uwb_pub = rospy.Publisher('dwm/odom', Odometry, queue_size=10)
@@ -25,6 +25,13 @@ def vo_callback(data):
     new_data = data
     new_data.header.frame_id = "odom"
     new_data.child_frame_id = "base_link"
+
+    diff_trans = first_trans.inv() * curr_trans
+    diff_q = quaternion(diff_trans.rot_matrix())
+    new_data.pose.pose.orientation.x = diff_q.x
+    new_data.pose.pose.orientation.y = diff_q.y
+    new_data.pose.pose.orientation.z = diff_q.z
+    new_data.pose.pose.orientation.w = diff_q.w
     new_data.pose.pose.position.x = data.pose.pose.position.x - first_vo_data.pose.pose.position.x
     new_data.pose.pose.position.y = data.pose.pose.position.y - first_vo_data.pose.pose.position.y
     new_data.pose.pose.position.z = 0.0
