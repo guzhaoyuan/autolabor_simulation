@@ -42,15 +42,18 @@
     <param name="imu0_relative" value="true" />
     <param name="imu0_queue_size" value="10" />
     <param name="imu0_remove_gravitational_acceleration" value="true" />
-    <rosparam param="imu0_config">[false, false, false, false, false, false,
-                                   false, false, false, true , true, true,
+    <rosparam param="imu0_config">[false, false, false, false, false, true,
+                                   false, false, false, false, false, true,
                                    true, true, true]</rosparam> -->
   </node>
   
   <node name="odom_filter" pkg="simulation_launch" type="slambox_odom_filter" >
     <!-- <param name="vo_pos_cov" value="0.01" /> -->
-    <param name="lidar_pos_cov" value="0.01" />
+    <param name="lidar_pos_cov" value="0.1" />
   </node>
+
+  <!-- Change frame_id in imu data -->
+  <node pkg="lego_loam" type="IMU" name="IMU" output="log" />
 
   <!-- <node pkg="tf" type="static_transform_publisher" name="robot_to_camera" args="0.0 0.0 0.0 0.0 0.0 0.0 /camera_pose_frame /base_link 200" /> -->
   <!-- <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0.0 0.0 0.0 0.0 0.0 0.0 /map /odom 200" /> -->
