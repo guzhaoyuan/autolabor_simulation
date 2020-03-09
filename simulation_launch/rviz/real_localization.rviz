@@ -5,9 +5,6 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /TF1
-        - /PointCloud21
-        - /Axes1
       Splitter Ratio: 0.2586558163166046
     Tree Height: 708
   - Class: rviz/Selection
@@ -28,7 +25,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: PointCloud2
+    SyncSource: ""
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -158,25 +155,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 48.642208099365234
+      Distance: 5.187256813049316
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -9.619190216064453
-        Y: -1.293296217918396
-        Z: 9.378303527832031
+        X: 0
+        Y: 0
+        Z: 0
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6347963809967041
+      Pitch: 0.7953981757164001
       Target Frame: base_link
       Value: Orbit (rviz)
-      Yaw: 5.826741695404053
+      Yaw: 3.4204001426696777
     Saved: ~
 Window Geometry:
   Displays:
