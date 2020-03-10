@@ -1,0 +1,26 @@
+#Independent settings for the global planner's costmap. Detailed descriptions of these parameters can be found at http://www.ros.org/wiki/costmap_2d
+
+global_costmap:
+  
+  #Set the global and robot frames for the costmap
+  map_type: costmap
+  global_frame: map
+
+  #Set the update and publish frequency of the costmap
+  update_frequency: 2.0
+  publish_frequency: 1.0
+
+  robot_radius: 0.01
+  footprint_padding: 0.01
+
+  #Cost function parameters
+  inflation_radius: 0.6
+  cost_scaling_factor: 4.0
+
+  #The cost at which a cell is considered an obstacle when a map is read from the map_server
+  lethal_cost_threshold: 1.0
+
+
+  #We'll use a map served by the map_server to initialize this costmap
+  static_map: true
+  rolling_window: false
