@@ -17,7 +17,7 @@
 
 ``` {.sourceCode .bash}
 # Create catkin_workspace
-sudo apt install ros-melodic-costmap-2d ros-melodic-random-numbers ros-melodic-nav-core ros-melodic-move-base ros-melodic-map-server ros-melodic-robot-localization
+sudo apt install ros-melodic-costmap-2d ros-melodic-random-numbers ros-melodic-nav-core ros-melodic-move-base ros-melodic-map-server ros-melodic-robot-localization ros-melodic-global-planner
 source /opt/ros/kinetic/setup.bash
 mkdir -p ~/catkin_ws/src
 cd ~/catkin_ws/
