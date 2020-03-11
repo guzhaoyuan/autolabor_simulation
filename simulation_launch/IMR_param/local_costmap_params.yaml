@@ -9,11 +9,11 @@ local_costmap:
   update_frequency: 15.0
   publish_frequency: 15.0
 
-  robot_radius: 0.20
-  footprint_padding: 0.01
+#  robot_radius: 0.20
+#  footprint_padding: 0.01
 
   #Cost function parameters
-  inflation_radius: 0.6
+  inflation_radius: 0.4
   cost_scaling_factor: 4.0
 
   #The cost at which a cell is considered an obstacle when a map is read from the map_server
