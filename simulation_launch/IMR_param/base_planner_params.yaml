@@ -3,6 +3,7 @@
 #http://www.ros.org/wiki/base_local_planner
 base_global_planner: "navfn/NavfnROS"
 base_local_planner: "base_local_planner/TrajectoryPlannerROS"
+#base_local_planner: "dwa_local_planner/DWAPlannerROS"
 
 recovery_behavior_enabled: false
 recovery_behaviors:
@@ -15,22 +16,22 @@ NavfnROS:
 
 TrajectoryPlannerROS:
   #Set the acceleration limits of the robot
-  acc_lim_theta: 20.0
-  acc_lim_x: 20.0
+  acc_lim_theta: 999.0
+  acc_lim_x: 999.0
   acc_lim_y: 0
 
 #   # #Set the velocity limits of the robot
   max_vel_x: 20.0
-  min_vel_x: 0.0
+  min_vel_x: 0.1
   max_rotational_vel: 20.0
   min_rotational_vel: -20.0
 #   # # min_in_place_rotational_vel: -3
-  max_in_place_rotational_vel: 5
+  max_in_place_rotational_vel: 20
 
   controller_frequency: 20
 
 #   # #The velocity the robot will command when trying to escape from a stuck situation
-  escape_vel: -0.10
+  escape_vel: -1.00
   
 #   # #For this example, we'll use a holonomic robot
   holonomic_robot: false
@@ -43,28 +44,21 @@ TrajectoryPlannerROS:
   yaw_goal_tolerance: 0.2
   latch_xy_goal_tolerance: true
 
-#   # #We'll configure how long and with what granularity we'll forward simulate trajectories
-  sim_time: 4.0
+  # We'll configure how long and with what granularity we'll forward simulate trajectories
+  sim_time: 2.0
   sim_granularity: 0.05
   angular_sim_granularity: 0.05
 
   vx_samples: 10
   vtheta_samples: 20
 
-#   # #Parameters for scoring trajectories
-  occdist_scale: 0.02
+# Parameters for scoring trajectories
+  occdist_scale: 0.1
   pdist_scale: 32
-  gdist_scale: 1.0
-  #   heading_lookahead: 0.7
-  #   heading_lookahead: 2
-  # heading_scoring: true
-  # heading_scoring_timestep: 1
-#    escape_reset_dist: 0.05
-#    escape_reset_theta: 0.1
-#   simple_attractor: true
+  gdist_scale: 30
 
 # Dynamic Window Approach is more efficient than Trajectory Rollout.
-  dwa: false
+  dwa: true
 
 # How far the robot must travel before oscillation flags are reset
   oscillation_reset_dist: 0.05
