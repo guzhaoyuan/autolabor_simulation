@@ -17,8 +17,8 @@
         <param name="max_a_linear" value="999.0"/>
         <param name="max_a_theta" value="999.0"/>
 
-        <param name="max_v_linear" value="1.0"/>
-        <param name="max_v_theta" value="1.57"/>
+        <param name="max_v_linear" value="20.0"/>
+        <param name="max_v_theta" value="20.0"/>
 
         <param name="rate" value="20"/>
         <param name="is_tf_broadcast" value="true"/>
@@ -37,12 +37,6 @@
         <remap from="map" to="map" />
         <remap from="map_metadata" to="map_metadata" />
     </node>
-
-    <!-- <node name="simulation_stage" pkg="autolabor_simulation_stage" type="simulation_stage_node" output="screen">
-        <param name="input_topic" value="reserve_map" />
-        <param name="output_topic" value="stage_map" />
-        <param name="real_map_frame" value="real_map" />
-    </node> -->
 
     <node name="simulation_lidar" pkg="autolabor_simulation_lidar" type="simulation_lidar_node" output="screen">
         <param name="min_angle" value="-3.141592654" />
@@ -92,18 +86,19 @@
     </node> -->
 
     <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen" clear_params="true" >
-        <param name="controller_frequency" value="10.0" />
+        <param name="controller_frequency" value="30.0" />
         <param name="planner_frequency" value="100.0" />
         <param name="planner_patience" value="1.0" />
         <param name="controller_patience" value="1.0" />
         <param name="max_planning_retries" value="-1.0" />
         <param name="conservative_reset_dist" value="1.5" />
+        <param name="recovery_behavior_enabled" value="false"/>
 
-        <rosparam file="$(find simulation_launch)/IMR_param/base_local_planner_params.yaml" command="load"/>
+        <rosparam file="$(find simulation_launch)/IMR_param/base_planner_params.yaml" command="load"/>
         <rosparam file="$(find simulation_launch)/IMR_param/costmap_common_params.yaml" command="load" ns="global_costmap" />
         <rosparam file="$(find simulation_launch)/IMR_param/costmap_common_params.yaml" command="load" ns="local_costmap" />
         <rosparam file="$(find simulation_launch)/IMR_param/local_costmap_params.yaml" command="load" />
-        <rosparam file="$(find simulation_launch)/IMR_param/global_costmap_params_backup.yaml" command="load" />
+        <rosparam file="$(find simulation_launch)/IMR_param/global_costmap_params.yaml" command="load" />
     </node>
 
     <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0.0 0.0 0.0 0.0 0.0 0.0 /map /odom 10" />

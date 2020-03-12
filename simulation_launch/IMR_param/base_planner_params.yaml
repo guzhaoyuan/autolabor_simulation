@@ -1,18 +1,17 @@
 #For full documentation of the parameters in this file, and a list of all the
 #parameters available for TrajectoryPlannerROS, please see
 #http://www.ros.org/wiki/base_local_planner
-GlobalPlanner:
+base_global_planner: "navfn/NavfnROS"
+base_local_planner: "base_local_planner/TrajectoryPlannerROS"
+
+recovery_behavior_enabled: false
+recovery_behaviors:
+  - {name: conservative_reset, type: clear_costmap_recovery/ClearCostmapRecovery}
+
+NavfnROS:
   allow_unknown: true # Specifies whether or not to allow navfn to create plans that traverse unknown space.
   default_tolerance: 0.2 # A tolerance on the goal point for the planner.
-  use_dijkstra: false
-  use_quadratic: false
-  use_grid_path: false
-  old_navfn_behavior: false
-  recovery_behavior_enabled: false
   visualize_potential: true
-  cost_factor: 0.55
-  neutral_cost: 50
-  #lethal_cost: 20
 
 TrajectoryPlannerROS:
   #Set the acceleration limits of the robot
@@ -21,10 +20,10 @@ TrajectoryPlannerROS:
   acc_lim_y: 0
 
 #   # #Set the velocity limits of the robot
-  max_vel_x: 5.0
+  max_vel_x: 20.0
   min_vel_x: 0.0
-  max_rotational_vel: 2.0
-  min_rotational_vel: -2.0
+  max_rotational_vel: 20.0
+  min_rotational_vel: -20.0
 #   # # min_in_place_rotational_vel: -3
   max_in_place_rotational_vel: 5
 
@@ -45,7 +44,7 @@ TrajectoryPlannerROS:
   latch_xy_goal_tolerance: true
 
 #   # #We'll configure how long and with what granularity we'll forward simulate trajectories
-  sim_time: 3.0
+  sim_time: 4.0
   sim_granularity: 0.05
   angular_sim_granularity: 0.05
 
@@ -53,26 +52,23 @@ TrajectoryPlannerROS:
   vtheta_samples: 20
 
 #   # #Parameters for scoring trajectories
-#   # #goal_distance_bias: 128
-#   path_distance_bias: 90
   occdist_scale: 0.02
-#   heading_lookahead: 0.7
   pdist_scale: 32
-  gdist_scale: 20
-  #pdist_scale: 2.4
-  #gdist_scale: 4.0
-#   # # # heading_lookahead: 2
-#   # # heading_scoring: true
-#   # # heading_scoring_timestep: 1
-#   # escape_reset_dist: 0.05
-#   # escape_reset_theta: 0.1
+  gdist_scale: 1.0
+  #   heading_lookahead: 0.7
+  #   heading_lookahead: 2
+  # heading_scoring: true
+  # heading_scoring_timestep: 1
+#    escape_reset_dist: 0.05
+#    escape_reset_theta: 0.1
 #   simple_attractor: true
-#   # #We'll use the Dynamic Window Approach to control instead of Trajectory Rollout for this example
-  dwa: true
 
-#   # #How far the robot must travel before oscillation flags are reset
-#   # oscillation_reset_dist: 1
+# Dynamic Window Approach is more efficient than Trajectory Rollout.
+  dwa: false
 
-#   # #Eat up the plan as the robot moves along it
+# How far the robot must travel before oscillation flags are reset
+  oscillation_reset_dist: 0.05
+
+# Eat up the plan as the robot moves along it
   prune_plan: true
   meter_scoring: true
