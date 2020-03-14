@@ -22,7 +22,7 @@
     <param name="world_frame" value="odom" />
     <param name="print_diagnostics" value="true" />
 
-    <rosparam param="initial_state">[ 0.3,  0.0,  0.0,
+    <rosparam param="initial_state">[ 0.0,  0.0,  0.0,
                                       0.0,  0.0,  0.0,
                                       0.0,  0.0,  0.0,
                                       0.0,  0.0,  0.0,
@@ -30,9 +30,9 @@
 
     <!-- The camera is bad at position, only use velocity here. -->
     <param name="odom0" value="t265/odom" />
-    <rosparam param="odom0_config">[false, false, false, false, false, false,
-                                     true, true, false, false, false, true,
-                                     false, false, false]</rosparam>
+    <rosparam param="odom0_config">[true, true, false, false, false, true,
+        false, false, false, false, false, false,
+                                    false, false, false]</rosparam>
 
     <!-- The UWB gives a bad position estimate here. -->
     <param name="odom1" value="dwm/odom" />
@@ -48,7 +48,7 @@
     <param name="imu0_remove_gravitational_acceleration" value="true" />
     <rosparam param="imu0_config">[false, false, false, false, false, true,
                                    false, false, false, false, false, true,
-                                   true, true, true]</rosparam>
+        true, true, true]</rosparam>
   </node>
 
   <!-- robot_localization EKF node for the map frame -->
@@ -71,26 +71,33 @@
 <!--  </node>-->
 
 <!--  assume the robot center is the camera.-->
-  <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0.0 0.0 0.0 0.0 0.0 0.0 /map /odom 200" />
-  <node pkg="tf" type="static_transform_publisher" name="robot_to_beacon"
-        args="-0.308 0.0 0.0 0.0 0.0 0.0 /base_link /beacon 100" />
-  <node pkg="tf" type="static_transform_publisher" name="robot_to_camera"
-        args="0.2 0.0 0.0 0.0 0.0 0.0 /base_link /d435_link 1000" />
+    <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0.0 0.0 0.0 0.0 0.0 0.0 /map /odom 200" />
+    <node pkg="tf" type="static_transform_publisher" name="odom_to_uwb_odom"
+          args="-0.5 0.0 0.0 0.0 0.0 0.0 /odom /uwb_odom 200" />
+    <node pkg="tf" type="static_transform_publisher" name="robot_to_beacon"
+        args="-0.0 0.0 0.0 0.0 0.0 0.0 /base_link /beacon 100" />
+    <node pkg="tf" type="static_transform_publisher" name="robot_to_camera"
+        args="0.0 0.0 0.0 0.0 0.0 0.0 /base_link /d435_link 1000" />
 <!--  <node pkg="tf" type="static_transform_publisher" name="camera_to_imu" args="0.0 0.0 0.0 0.0 0.0 0.0 /base_link /d435_imu_optical_frame 1000" />-->
   <!--<node pkg="tf" type="static_transform_publisher" name="base_link_to_velodyne" args="0.0 0.0 0.0 0.0 0.0 0.0 /base_link /velodyne 200" /> -->
   
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find simulation_launch)/rviz/imr_localization.rviz" />
   
   <node name="odom_filter" pkg="simulation_launch" type="odom_filter" >
-    <param name="vo_pos_cov" value="1" />
-    <param name="uwb_pos_cov" value="0.1" />
-    <param name="init_odom_yaw" value="-1.5707" />
+      <param name="vo_pos_cov" value="0.1" />
+      <param name="vo_vel_cov" value="10" />
+      <param name="uwb_pos_cov" value="0.2" />
+      <param name="imu_ori_cov" value="0.1" />
+      <param name="init_odom_yaw" value="-1.5707" />
+      <param name="init_imu_yaw" value="-0.323" />
+      <param name="distance_UWB_to_base" value="0.508" />
   </node>
 
   <!-- Play bag -->
 <!--  <node pkg="rosbag" type="play" name="player" output="screen" args="/home/gzy/bags/2020-02-12-17-39-48.bag &#45;&#45;clock -s 0 -r 1 &#45;&#45;pause"/>-->
   <!-- <node pkg="rosbag" type="play" name="player" output="screen" args="/home/gzy/bags/2020-02-12-17-42-56.bag clock -s 0 -r 1"/> -->
 <!--  <node pkg="rosbag" type="play" name="player" output="screen" args="/home/gzy/bags/imr_sensors_2020-03-12-16-18-14.bag &#45;&#45;clock -s 0 -r 1 &#45;&#45;pause"/>-->
-  <node pkg="rosbag" type="play" name="player" output="screen" args="/home/gzy/bags/imr_sensors_2020-03-12-16-30-50.bag --clock -s 0 -r 1 --pause"/>
+  <node pkg="rosbag" type="play" name="player" output="screen"
+        args="/home/gzy/bags/imr_sensors_2020-03-12-16-30-50.bag --clock -s 0 -r 1 --pause"/>
 
 </launch>

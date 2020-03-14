@@ -5,7 +5,6 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /TF1/Frames1
         - /UWB Odometry1/Shape1
         - /Imu1/Box properties1
         - /Imu1/Axes properties1
@@ -63,7 +62,7 @@ Visualization Manager:
         base_link:
           Value: true
         beacon:
-          Value: true
+          Value: false
         d435_accel_frame:
           Value: false
         d435_accel_optical_frame:
@@ -83,7 +82,7 @@ Visualization Manager:
         d435_gyro_frame:
           Value: false
         d435_imu_optical_frame:
-          Value: true
+          Value: false
         d435_infra1_frame:
           Value: false
         d435_infra1_optical_frame:
@@ -123,6 +122,8 @@ Visualization Manager:
         t265_pose_frame:
           Value: false
         uwb_link:
+          Value: false
+        uwb_odom:
           Value: false
       Marker Scale: 1
       Name: TF
@@ -175,6 +176,8 @@ Visualization Manager:
                     {}
               lidar:
                 {}
+            uwb_odom:
+              {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -282,7 +285,7 @@ Visualization Manager:
       Image Rendering: background and overlay
       Image Topic: /d435/color/image_raw
       Name: d435
-      Overlay Alpha: 0.5
+      Overlay Alpha: 1
       Queue Size: 2
       Transport Hint: raw
       Unreliable: false
@@ -291,10 +294,10 @@ Visualization Manager:
         Axes: true
         Grid: false
         Imu: false
-        RobotModel: true
+        RobotModel: false
         TF: false
         UWB Odometry: false
-        Value: false
+        Value: true
         Visual Odometry: false
       Zoom Factor: 1
     - Acceleration properties:
@@ -348,7 +351,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.433124303817749
+      Distance: 4.390361309051514
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -363,10 +366,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.1147971153259277
+      Pitch: 1.2202032804489136
       Target Frame: base_link
       Value: Orbit (rviz)
-      Yaw: 3.300393581390381
+      Yaw: 3.225386142730713
     Saved: ~
 Window Geometry:
   Displays:
