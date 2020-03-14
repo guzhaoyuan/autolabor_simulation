@@ -93,6 +93,10 @@
       <param name="distance_UWB_to_base" value="0.508" />
   </node>
 
+  <node name="path_viz" pkg="simulation_launch" type="viz_path" >
+      <param name="rate" value="2"/>
+  </node>
+
   <!-- Play bag -->
 <!--  <node pkg="rosbag" type="play" name="player" output="screen" args="/home/gzy/bags/2020-02-12-17-39-48.bag &#45;&#45;clock -s 0 -r 1 &#45;&#45;pause"/>-->
   <!-- <node pkg="rosbag" type="play" name="player" output="screen" args="/home/gzy/bags/2020-02-12-17-42-56.bag clock -s 0 -r 1"/> -->
