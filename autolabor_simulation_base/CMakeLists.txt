@@ -25,10 +25,12 @@ include_directories(
 )
 
 add_executable(simulation_base_node src/simulation_base_node.cpp)
-
 add_dependencies(simulation_base_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
 target_link_libraries(simulation_base_node
   ${catkin_LIBRARIES}
 )
 
+
+add_executable(variance test/variance.cpp)
+add_dependencies(variance ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(variance ${catkin_LIBRARIES})
