@@ -1,7 +1,7 @@
 <launch>
   <arg name="model" />
 
-  <param name="use_sim_time" value="false"/>
+  <param name="use_sim_time" value="true"/>
   <param name="robot_description" textfile="$(find autolabor_description)/urdf/autolabor_mini.urdf" />
  
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" >
@@ -11,10 +11,10 @@
 
   <!-- robot_localization EKF node for the odom frame -->
   <node pkg="robot_localization" type="ekf_localization_node" name="robot_localization_ekf_node_odom"  clear_params="true">
-    <param name="frequency" value="20" />
+    <param name="frequency" value="50" />
     <param name="sensor_timeout" value="0.2" />
     <param name="predict_to_current_time" value="true"/>
-    <param name="two_d_mode" value="true" />
+    <param name="two_d_mode" value="false" />
     <param name="publish_tf" value="true" />
 
     <param name="map_frame" value="map" />
@@ -28,14 +28,14 @@
 
     <!-- The camera is bad at position, only use velocity here. -->
     <param name="odom0" value="camera_odom" />
-    <rosparam param="odom0_config">[false, false, false, false, false, false,
-                                     true, true, false, false, false, true,
+    <rosparam param="odom0_config">[true, true, true, true, true, true,
+                                     false, false, false, false, false, false,
                                      false, false, false]</rosparam>
     <!-- lidar gives a position information from tf. -->
     <param name="odom1" value="lidar_odom" />
-    <rosparam param="odom1_config">[true, true, false, false, false, true,
-                                     false, false, false, false, false, false,
-                                     false, false, false]</rosparam>
+    <rosparam param="odom1_config">[true, true, true, true, true, true,
+                                    false, false, false, false, false, false,
+                                    false, false, false]</rosparam>
     <!-- IMU handles the linear acceleration and angular velocity. -->
     <!-- <param name="imu0" value="/imu_data"/>
     <param name="imu0_differential" value="false" />
@@ -48,17 +48,22 @@
   </node>
   
   <node name="odom_filter" pkg="simulation_launch" type="slambox_odom_filter" >
-    <!-- <param name="vo_pos_cov" value="0.01" /> -->
-    <param name="lidar_pos_cov" value="0.1" />
+    <param name="vo_need_cov" value="true"/>
+    <param name="vo_pos_cov" value="10" />
+    <param name="lidar_need_cov" value="true"/>
+    <param name="lidar_pos_cov" value="10" />
+    <param name="lidar_vel_cov" value="1" />
   </node>
 
   <!-- Change frame_id in imu data -->
-  <node pkg="lego_loam" type="IMU" name="IMU" output="log" />
+<!--  <node pkg="lego_loam" type="IMU" name="IMU" output="log" />-->
 
   <!-- <node pkg="tf" type="static_transform_publisher" name="robot_to_camera" args="0.0 0.0 0.0 0.0 0.0 0.0 /camera_pose_frame /base_link 200" /> -->
-  <!-- <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0.0 0.0 0.0 0.0 0.0 0.0 /map /odom 200" /> -->
-  <node pkg="tf" type="static_transform_publisher" name="base_link_to_velodyne" args="0.0 0.0 0.0 0.0 0.0 0.0 /base_link /velodyne 200" />
+   <node pkg="tf" type="static_transform_publisher" name="sensor_init_to_odom"
+         args="0.0 0.0 0.0 0.0 0.0 0.0 /sensor_init /odom 200" />
+<!--  <node pkg="tf" type="static_transform_publisher" name="base_link_to_velodyne" args="0.0 0.0 0.0 0.0 0.0 0.0 /base_link /velodyne 200" />-->
   
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find simulation_launch)/rviz/real_localization.rviz" />
-  
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find simulation_launch)/rviz/mapping.rviz" />
+  <node pkg="rosbag" type="play" name="player" output="screen"
+        args="/home/gzy/Downloads/2020-03-18-18-03-12.bag --clock -s 0 -r 1 --pause"/>
 </launch>
