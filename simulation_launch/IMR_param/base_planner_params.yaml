@@ -2,8 +2,10 @@
 #parameters available for TrajectoryPlannerROS, please see
 #http://www.ros.org/wiki/base_local_planner
 base_global_planner: "navfn/NavfnROS"
-base_local_planner: "base_local_planner/TrajectoryPlannerROS"
+#base_global_planner: "loop_path_planner/LoopPathPlanner"
+#base_local_planner: "base_local_planner/TrajectoryPlannerROS"
 #base_local_planner: "dwa_local_planner/DWAPlannerROS"
+base_local_planner: "cs_local_planner/CSPlannerROS"
 
 recovery_behavior_enabled: false
 recovery_behaviors:
@@ -40,8 +42,8 @@ TrajectoryPlannerROS:
   
 
 #   # #Set the tolerance on achieving a goal
-  xy_goal_tolerance: 0.2
-  yaw_goal_tolerance: 0.2
+  xy_goal_tolerance: 1
+  yaw_goal_tolerance: 1
   latch_xy_goal_tolerance: true
 
   # We'll configure how long and with what granularity we'll forward simulate trajectories

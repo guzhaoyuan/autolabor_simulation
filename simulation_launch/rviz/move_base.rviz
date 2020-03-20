@@ -117,8 +117,8 @@ Visualization Manager:
     - Alpha: 1
       Autocompute Intensity Bounds: false
       Autocompute Value Bounds:
-        Max Value: 5.193978309631348
-        Min Value: -0.7259131669998169
+        Max Value: 1.6704365015029907
+        Min Value: -0.7075340747833252
         Value: true
       Axis: Y
       Channel Name: intensity
@@ -296,7 +296,7 @@ Visualization Manager:
       Radius: 0.029999999329447746
       Shaft Diameter: 0.10000000149011612
       Shaft Length: 0.10000000149011612
-      Topic: /move_base/TrajectoryPlannerROS/local_plan
+      Topic: /move_base/CSPlannerROS/global_plan
       Unreliable: false
       Value: true
   Enabled: true
