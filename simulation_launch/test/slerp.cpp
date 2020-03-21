@@ -10,15 +10,18 @@
 int main (int argc, char** argv) {
   ros::init(argc, argv, "basic_shapes");
   ros::NodeHandle n;
-  ros::Rate r(10);
+  ros::Rate r(5);
 
   ros::Publisher marker_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 1);
   ros::Publisher imu_pub1 = n.advertise<sensor_msgs::Imu>("marker1", 1);
   ros::Publisher imu_pub2 = n.advertise<sensor_msgs::Imu>("marker2", 1);
   ros::Publisher imu_pub3 = n.advertise<sensor_msgs::Imu>("marker3", 1);
 
-  Eigen::Quaterniond q1(1,2,3,4); q1.normalize();
-  Eigen::Quaterniond q2(3,-5,6,-7); q2.normalize();
+  Eigen::Quaterniond qI(1,0,0,0); qI.normalize();
+
+  Eigen::Quaterniond q1(1,0,0,1); q1.normalize(); // Rotation.
+  Eigen::Quaterniond q2(0, 1,1,1); q2.normalize(); // Orientation
+  Eigen::Quaterniond q3 = q1 * q2 * q1.inverse();
 
   double i = 0;
   double di = 0.01;
@@ -41,16 +44,7 @@ int main (int argc, char** argv) {
     msg2.orientation.z = q2.z();
     imu_pub2.publish(msg2);
 
-    i += di;
-    if (i >= 1) {
-      i = 1;
-      di = -di;
-    }
-    if (i <= 0) {
-      i = 0;
-      di = -di;
-    }
-    Eigen::Quaterniond q3 = q1.slerp(i, q2);
+//    q3 =   q1 * q3;
 
     sensor_msgs::Imu msg3;
     msg3.header.frame_id = "map";
