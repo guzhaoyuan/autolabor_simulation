@@ -1,0 +1,13 @@
+<launch>
+
+    <!-- Visualization -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find simulation_launch)/rviz/quaternion.rviz" />
+
+    <node name="slerp" pkg="simulation_launch" type="slerp" output="screen"/>
+
+    <node pkg="tf" type="static_transform_publisher" name="map_to_left"
+          args="0.0 -1.0 0.0 0.0 0.0 0.0 /map /left 100" />
+    <node pkg="tf" type="static_transform_publisher" name="map_to_right"
+          args="0.0 1.0 0.0 0.0 0.0 0.0 /map /right 100" />
+
+</launch>
