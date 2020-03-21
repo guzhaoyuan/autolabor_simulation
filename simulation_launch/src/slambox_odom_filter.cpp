@@ -2,6 +2,8 @@
 #include <ros/ros.h>
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <tf/LinearMath/Quaternion.h>
+#include <tf/LinearMath/Matrix3x3.h>
 
 ros::Publisher vo_odom;
 ros::Publisher lidar_odom;
@@ -16,27 +18,38 @@ bool lidar_need_cov = false;
 double lidar_pos_cov = 0.0;
 double lidar_vel_cov = 0.0;
 
-Eigen::Matrix4d first_cam_odom = Eigen::Matrix4d::Identity();
+ros::Time last_cam_time;
+Eigen::Matrix4d last_cam_odom = Eigen::Matrix4d::Identity();
 Eigen::Matrix4d first_lidar_trans = Eigen::Matrix4d::Identity();
 
 void vo_odom_callback(const nav_msgs::Odometry::ConstPtr& msg) {
    if (first_vo) {
      first_vo = false;
-     first_cam_odom.topLeftCorner(3, 3) = Eigen::Quaterniond(msg->pose.pose.orientation.w,
+     last_cam_odom.topLeftCorner(3, 3) = Eigen::Quaterniond(msg->pose.pose.orientation.w,
        msg->pose.pose.orientation.x, msg->pose.pose.orientation.y, msg->pose.pose.orientation.z).toRotationMatrix();
-     first_cam_odom.topRightCorner(3, 1) = Eigen::Vector3d(msg->pose.pose.position.x,
+     last_cam_odom.topRightCorner(3, 1) = Eigen::Vector3d(msg->pose.pose.position.x,
                                                            msg->pose.pose.position.y,
                                                            msg->pose.pose.position.z);
+     last_cam_time = msg->header.stamp;
      return;
    }
 
-  // Eigen::Matrix4d curr_cam_odom = Eigen::Matrix4d::Identity();
-  // curr_cam_odom.topLeftCorner(3, 3) = Eigen::Quaterniond(msg->pose.pose.orientation.w, 
-  //     msg->pose.pose.orientation.x, msg->pose.pose.orientation.y, msg->pose.pose.orientation.z).toRotationMatrix();
-  // curr_cam_odom.topRightCorner(3, 1) = Eigen::Vector3d( msg->pose.pose.position.x,
-  //                                                       msg->pose.pose.position.y,
-  //                                                       msg->pose.pose.position.z);
-  
+   const double T = (msg->header.stamp - last_cam_time).toSec();
+   Eigen::Matrix4d curr_cam_odom = Eigen::Matrix4d::Identity();
+   curr_cam_odom.topLeftCorner(3, 3) = Eigen::Quaterniond(msg->pose.pose.orientation.w,
+       msg->pose.pose.orientation.x, msg->pose.pose.orientation.y, msg->pose.pose.orientation.z).toRotationMatrix();
+   curr_cam_odom.topRightCorner(3, 1) = Eigen::Vector3d( msg->pose.pose.position.x,
+                                                         msg->pose.pose.position.y,
+                                                         msg->pose.pose.position.z);
+
+  Eigen::Vector3d linear_diff = curr_cam_odom.topRightCorner<3,1>() - last_cam_odom.topRightCorner<3,1>();
+  Eigen::Matrix3d rot_diff = last_cam_odom.topLeftCorner<3,3>().inverse() * curr_cam_odom.topLeftCorner<3,3>();
+  tf::Matrix3x3 tf_rot_diff(rot_diff(0,0), rot_diff(0,1), rot_diff(0,2),
+                  rot_diff(1,0), rot_diff(1,1), rot_diff(1,2),
+                  rot_diff(2,0), rot_diff(2,1), rot_diff(2,2));
+  double roll, pitch, yaw;
+  tf_rot_diff.getRPY(roll, pitch, yaw);
+
   // Eigen::Matrix4d curr_wrt_first = first_cam_odom.inverse() * curr_cam_odom;
   // Eigen::Matrix3d curr_wrt_first_R = curr_wrt_first.topLeftCorner(3, 3);
   // // Eigen::Matrix3d init_guess_for_odom_frame_yaw = Eigen::AngleAxisd(init_odom_yaw, Eigen::Vector3d::UnitZ()).toRotationMatrix();
@@ -55,6 +68,15 @@ void vo_odom_callback(const nav_msgs::Odometry::ConstPtr& msg) {
   // modified_msg.pose.pose.orientation.x = curr_wrt_first_q.x();
   // modified_msg.pose.pose.orientation.y = curr_wrt_first_q.y();
   // modified_msg.pose.pose.orientation.z = curr_wrt_first_q.z();
+
+  modified_msg.twist.twist.linear.x = linear_diff(0)/T;
+  modified_msg.twist.twist.linear.y = linear_diff(1)/T;
+  modified_msg.twist.twist.linear.z = linear_diff(2)/T;
+  modified_msg.twist.twist.angular.x = roll/T;
+  modified_msg.twist.twist.angular.y = pitch/T;
+  modified_msg.twist.twist.angular.z = yaw/T;
+
+
   if (vo_need_cov) {
     modified_msg.pose.covariance = {vo_pos_cov, 0., 0., 0., 0., 0.,
                                     0., vo_pos_cov, 0., 0., 0., 0.,
