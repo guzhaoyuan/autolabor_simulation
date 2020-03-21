@@ -59,15 +59,15 @@ Visualization Manager:
     - Alpha: 0.5
       Autocompute Intensity Bounds: false
       Autocompute Value Bounds:
-        Max Value: 11.849824905395508
-        Min Value: 2.018730640411377
+        Max Value: 9.191752433776855
+        Min Value: 0.1753143072128296
         Value: true
       Axis: Z
       Channel Name: intensity
       Class: rviz/PointCloud2
       Color: 255; 255; 0
       Color Transformer: AxisColor
-      Decay Time: 10
+      Decay Time: 100
       Enabled: true
       Invert Rainbow: true
       Max Color: 255; 255; 255
@@ -204,12 +204,12 @@ Visualization Manager:
           Reference Frame: sensor_init
           Value: true
         - Class: rviz/Axes
-          Enabled: true
+          Enabled: false
           Length: 10
           Name: Fusion
           Radius: 1
           Reference Frame: velodyne
-          Value: true
+          Value: false
         - Class: rviz/Axes
           Enabled: true
           Length: 5
@@ -353,7 +353,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 20.264240264892578
+      Distance: 48.63325119018555
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -368,10 +368,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6753982901573181
-      Target Frame: aft_mapped
+      Pitch: 0.7653979659080505
+      Target Frame: sensor_init
       Value: Orbit (rviz)
-      Yaw: 0.19039827585220337
+      Yaw: 2.5953989028930664
     Saved: ~
 Window Geometry:
   Displays:

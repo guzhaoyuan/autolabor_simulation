@@ -36,7 +36,7 @@
     <param name="odom1" value="lidar_odom" />
     <rosparam param="odom1_config">[
       true, true, true, true, true, true,
-      false, false, false, false, false, false,
+      true, true, true, true, true, true,
       false, false, false]</rosparam>
     <!-- IMU handles the linear acceleration and angular velocity. -->
     <!-- <param name="imu0" value="/imu_data"/>
@@ -49,12 +49,13 @@
                                    true, true, true]</rosparam> -->
   </node>
   
-  <node name="odom_filter" pkg="simulation_launch" type="slambox_odom_filter" >
+  <node name="odom_filter" pkg="simulation_launch" type="slambox_odom_filter" output="screen" >
     <param name="vo_need_cov" value="true"/>
     <param name="vo_pos_cov" value="10" />
+    <param name="vo_vel_cov" value="1" />
     <param name="lidar_need_cov" value="true"/>
-    <param name="lidar_pos_cov" value="10" />
-    <param name="lidar_vel_cov" value="1" />
+    <param name="lidar_pos_cov" value="0.1" />
+    <param name="lidar_vel_cov" value="10" />
   </node>
 
   <!-- Change frame_id in imu data -->

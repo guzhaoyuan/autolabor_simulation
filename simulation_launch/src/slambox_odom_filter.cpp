@@ -14,6 +14,7 @@ int first_lidar = 0;
 
 bool vo_need_cov = false;
 double vo_pos_cov = 0.0;
+double vo_vel_cov = 0.0;
 bool lidar_need_cov = false;
 double lidar_pos_cov = 0.0;
 double lidar_vel_cov = 0.0;
@@ -47,14 +48,28 @@ void vo_odom_callback(const nav_msgs::Odometry::ConstPtr& msg) {
   tf::Matrix3x3 tf_rot_diff(rot_diff(0,0), rot_diff(0,1), rot_diff(0,2),
                   rot_diff(1,0), rot_diff(1,1), rot_diff(1,2),
                   rot_diff(2,0), rot_diff(2,1), rot_diff(2,2));
+  Eigen::Matrix3d curr_rot = curr_cam_odom.topLeftCorner<3,3>();
+  tf::Matrix3x3 tf_curr_rot(curr_rot(0,0), curr_rot(0,1), curr_rot(0,2),
+                            curr_rot(1,0), curr_rot(1,1), curr_rot(1,2),
+                            curr_rot(2,0), curr_rot(2,1), curr_rot(2,2));
+  Eigen::Matrix3d last_rot = last_cam_odom.topLeftCorner<3,3>();
+  tf::Matrix3x3 tf_last_rot(last_rot(0,0), last_rot(0,1), last_rot(0,2),
+                            last_rot(1,0), last_rot(1,1), last_rot(1,2),
+                            last_rot(2,0), last_rot(2,1), last_rot(2,2));
+  double curr_roll, curr_pitch, curr_yaw;
+  tf_curr_rot.getRPY(curr_roll, curr_pitch, curr_yaw);
+  double last_roll, last_pitch, last_yaw;
+  tf_last_rot.getRPY(last_roll, last_pitch, last_yaw);
   double roll, pitch, yaw;
   tf_rot_diff.getRPY(roll, pitch, yaw);
 
-  // Eigen::Matrix4d curr_wrt_first = first_cam_odom.inverse() * curr_cam_odom;
-  // Eigen::Matrix3d curr_wrt_first_R = curr_wrt_first.topLeftCorner(3, 3);
-  // // Eigen::Matrix3d init_guess_for_odom_frame_yaw = Eigen::AngleAxisd(init_odom_yaw, Eigen::Vector3d::UnitZ()).toRotationMatrix();
-  // Eigen::Matrix3d init_guess_for_odom_frame_yaw = Eigen::AngleAxisd(0, Eigen::Vector3d::UnitZ()).toRotationMatrix();
-  // Eigen::Quaterniond curr_wrt_first_q(curr_wrt_first_R * init_guess_for_odom_frame_yaw);
+  Eigen::Matrix<double, 3, 5> rpy;
+  rpy << curr_roll, last_roll, curr_roll - last_roll, roll, curr_roll - last_roll - roll,
+         curr_pitch, last_pitch, curr_pitch - last_pitch, pitch, curr_pitch - last_pitch - pitch,
+         curr_yaw, last_yaw, curr_yaw - last_yaw, yaw, curr_yaw - last_yaw - yaw;
+//  std::cout << rpy << std::endl;
+  if (std::abs(curr_roll - last_roll - roll) > 0.1 || std::abs(curr_pitch - last_pitch - pitch) > 0.1 || std::abs(curr_yaw - last_yaw - yaw) > 0.1)
+    ROS_WARN("Roll Pitch Yaw differential has precision issue.");
 
   nav_msgs::Odometry modified_msg = *msg;
   modified_msg.header.stamp = ros::Time::now();
@@ -72,10 +87,9 @@ void vo_odom_callback(const nav_msgs::Odometry::ConstPtr& msg) {
   modified_msg.twist.twist.linear.x = linear_diff(0)/T;
   modified_msg.twist.twist.linear.y = linear_diff(1)/T;
   modified_msg.twist.twist.linear.z = linear_diff(2)/T;
-  modified_msg.twist.twist.angular.x = roll/T;
-  modified_msg.twist.twist.angular.y = pitch/T;
-  modified_msg.twist.twist.angular.z = yaw/T;
-
+  modified_msg.twist.twist.angular.x = (curr_roll - last_roll)/T;
+  modified_msg.twist.twist.angular.y = (curr_pitch - last_pitch)/T;
+  modified_msg.twist.twist.angular.z = (curr_yaw - last_yaw)/T;
 
   if (vo_need_cov) {
     modified_msg.pose.covariance = {vo_pos_cov, 0., 0., 0., 0., 0.,
@@ -84,6 +98,12 @@ void vo_odom_callback(const nav_msgs::Odometry::ConstPtr& msg) {
                                     0., 0., 0., vo_pos_cov, 0., 0.,
                                     0., 0., 0., 0., vo_pos_cov, 0.,
                                     0., 0., 0., 0., 0., vo_pos_cov};
+    modified_msg.pose.covariance = {vo_vel_cov, 0., 0., 0., 0., 0.,
+                                    0., vo_vel_cov, 0., 0., 0., 0.,
+                                    0., 0., vo_vel_cov, 0., 0., 0.,
+                                    0., 0., 0., vo_vel_cov, 0., 0.,
+                                    0., 0., 0., 0., vo_vel_cov, 0.,
+                                    0., 0., 0., 0., 0., vo_vel_cov};
   }
 
   vo_odom.publish(modified_msg);
@@ -134,6 +154,7 @@ int main(int argc, char** argv) {
   private_node.getParam("vo_need_cov", vo_need_cov);
   private_node.getParam("lidar_need_cov", lidar_need_cov);
   private_node.getParam("vo_pos_cov", vo_pos_cov);
+  private_node.getParam("vo_vel_cov", vo_vel_cov);
   private_node.getParam("lidar_pos_cov", lidar_pos_cov);
   private_node.getParam("lidar_vel_cov", lidar_vel_cov);
 
