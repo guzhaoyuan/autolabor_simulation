@@ -1,0 +1,6 @@
+base_global_planner: "navfn/NavfnROS"
+base_local_planner: "cs_local_planner/CSPlannerROS"
+recovery_behaviors:
+  - {name: conservative_reset, type: clear_costmap_recovery/ClearCostmapRecovery}
+
+planner_frequency: 1

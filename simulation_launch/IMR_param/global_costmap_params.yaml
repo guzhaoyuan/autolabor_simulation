@@ -12,4 +12,3 @@ global_costmap:
   #We'll use a map served by the map_server to initialize this costmap
   static_map: true
   rolling_window: false
-  resolution: 0.05

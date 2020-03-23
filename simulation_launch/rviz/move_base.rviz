@@ -117,8 +117,8 @@ Visualization Manager:
     - Alpha: 1
       Autocompute Intensity Bounds: false
       Autocompute Value Bounds:
-        Max Value: 1.6704365015029907
-        Min Value: -0.7075340747833252
+        Max Value: 1.6557599306106567
+        Min Value: -1.9387390613555908
         Value: true
       Axis: Y
       Channel Name: intensity
@@ -296,7 +296,22 @@ Visualization Manager:
       Radius: 0.029999999329447746
       Shaft Diameter: 0.10000000149011612
       Shaft Length: 0.10000000149011612
-      Topic: /move_base/CSPlannerROS/global_plan
+      Topic: /move_base/CSPlannerROS/local_plan
+      Unreliable: false
+      Value: true
+    - Alpha: 1
+      Axes Length: 1
+      Axes Radius: 0.10000000149011612
+      Class: rviz/Pose
+      Color: 255; 25; 0
+      Enabled: true
+      Head Length: 0.30000001192092896
+      Head Radius: 0.10000000149011612
+      Name: Pose
+      Shaft Length: 1
+      Shaft Radius: 0.05000000074505806
+      Shape: Arrow
+      Topic: /move_base/CSPlannerROS/tracking_pose
       Unreliable: false
       Value: true
   Enabled: true
@@ -327,7 +342,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 6.680298328399658
+      Distance: 4.772385597229004
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -342,10 +357,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.9603973627090454
+      Pitch: 1.5347963571548462
       Target Frame: base_link
       Value: Orbit (rviz)
-      Yaw: 4.713581562042236
+      Yaw: 4.743582248687744
     Saved: ~
 Window Geometry:
   Displays:
