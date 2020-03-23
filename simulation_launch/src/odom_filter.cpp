@@ -17,13 +17,11 @@ class OdomFilter {
     private_node.getParam("init_imu_yaw", init_imu_yaw);
     private_node.getParam("imu_ori_cov", imu_ori_cov);
     private_node.getParam("distance_UWB_to_base", distance_UWB_to_base);
+    private_node.getParam("distance_camera_to_base", distance_camera_to_base);
 
     vo_odom = node.advertise<nav_msgs::Odometry>("t265/odom", 10);
     uwb_odom = node.advertise<nav_msgs::Odometry>("dwm/odom", 10);
     imu_odom = node.advertise<sensor_msgs::Imu>("imu/odom", 10);
-
-
-
   }
 
   void vo_odom_callback(const nav_msgs::Odometry::ConstPtr& msg) {
@@ -43,8 +41,25 @@ class OdomFilter {
     curr_cam_odom.topRightCorner(3, 1) = Eigen::Vector3d( msg->pose.pose.position.x,
                                                           msg->pose.pose.position.y,
                                                           msg->pose.pose.position.z);
+    // Create transform from camera to base in current base_link frame.
+    Eigen::Matrix4d T_cam_base = Eigen::Matrix4d::Identity();
+    T_cam_base(0,3) = distance_camera_to_base;
+    Eigen::Matrix4d curr_wrt_first = first_cam_odom.inverse() * curr_cam_odom * T_cam_base;
 
-    Eigen::Matrix4d curr_wrt_first = first_cam_odom.inverse() * curr_cam_odom;
+    tf::StampedTransform odom_to_base_link;
+    try{
+      listener.lookupTransform("/base_link", "/odom",
+                               ros::Time(0), odom_to_base_link);
+    } catch (tf::TransformException ex) {
+      odom_to_base_link.setIdentity();
+    }
+    tf::Quaternion q = odom_to_base_link.getRotation();
+    Eigen::Quaterniond q_WO(q.w(),q.x(),q.y(),q.z());
+    Eigen::Matrix3d R_WO = q_WO.toRotationMatrix();
+    // Compute the base_link in t265_odom_frame by adding offset from camera.
+    Eigen::Vector3d position_base = curr_cam_odom.topRightCorner<3,1>() + R_WO.transpose() * Eigen::Vector3d
+        (distance_camera_to_base, 0, 0);
+
     Eigen::Matrix3d curr_wrt_first_R = curr_wrt_first.topLeftCorner(3, 3);
     // Eigen::Matrix3d init_guess_for_odom_frame_yaw = Eigen::AngleAxisd(init_odom_yaw, Eigen::Vector3d::UnitZ()).toRotationMatrix();
     Eigen::Matrix3d init_guess_for_odom_frame_yaw = Eigen::AngleAxisd(0, Eigen::Vector3d::UnitZ()).toRotationMatrix();
@@ -52,11 +67,15 @@ class OdomFilter {
 
     nav_msgs::Odometry modified_msg = *msg;
     modified_msg.header.stamp = ros::Time::now();
-    modified_msg.header.frame_id = "odom";
+    modified_msg.header.frame_id = "t265_odom_frame";
     modified_msg.child_frame_id = "base_link";
 
-    modified_msg.pose.pose.position.x = curr_wrt_first(0,3);
-    modified_msg.pose.pose.position.y = curr_wrt_first(1,3);
+//    // Transform from camera to base_link use angle from camera odom.
+//    modified_msg.pose.pose.position.x = curr_wrt_first(0,3);
+//    modified_msg.pose.pose.position.y = curr_wrt_first(1,3);
+    // Transform from camera to base_link use angle from EKF estimate.
+    modified_msg.pose.pose.position.x = position_base(0);
+    modified_msg.pose.pose.position.y = position_base(1);
     modified_msg.pose.pose.position.z = 0;
     modified_msg.pose.pose.orientation.w = curr_wrt_first_q.w();
     modified_msg.pose.pose.orientation.x = curr_wrt_first_q.x();
@@ -103,14 +122,13 @@ class OdomFilter {
     try{
       listener.lookupTransform("/base_link", "/odom",
                                ros::Time(0), odom_to_base_link);
-    }
-    catch (tf::TransformException ex){
+    } catch (tf::TransformException ex) {
       odom_to_base_link.setIdentity();
     }
     tf::Quaternion q = odom_to_base_link.getRotation();
     Eigen::Quaterniond q_WO(q.w(),q.x(),q.y(),q.z());
     Eigen::Matrix3d R_WO = q_WO.toRotationMatrix();
-    // Compute the base_link in odom frame by adding offset from UWB.
+    // Compute the base_link in uwb_odom frame by adding offset from UWB.
     Eigen::Vector3d position_base = position_UWB + R_WO.transpose() * Eigen::Vector3d(distance_UWB_to_base, 0, 0);
 
     modified_msg.pose.pose.position.x = position_base(0);
@@ -188,7 +206,8 @@ class OdomFilter {
   double imu_ori_cov = 0.01;
   double init_odom_yaw = -0.75 * M_PI;
   double init_imu_yaw = -0.75 * M_PI;
-  double distance_UWB_to_base = 0.508;
+  double distance_UWB_to_base = 0.308;
+  double distance_camera_to_base = -0.20;
 
   Eigen::Matrix4d first_cam_odom = Eigen::Matrix4d::Identity();
   Eigen::Vector3d first_uwb_pos = Eigen::Vector3d::Zero();

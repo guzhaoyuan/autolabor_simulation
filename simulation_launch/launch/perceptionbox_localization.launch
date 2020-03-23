@@ -11,7 +11,7 @@
 
   <!-- robot_localization EKF node for the odom frame -->
   <node pkg="robot_localization" type="ekf_localization_node" name="robot_localization_ekf_node_odom"  clear_params="true">
-    <param name="frequency" value="400" />
+    <param name="frequency" value="100" />
     <param name="transform_time_offset" value="0.05" />
     <param name="sensor_timeout" value="0.2" />
     <param name="two_d_mode" value="true" />
@@ -72,25 +72,31 @@
 
 <!--  assume the robot center is the camera.-->
     <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0.0 0.0 0.0 0.0 0.0 0.0 /map /odom 200" />
+    <!--  t265 odom is based on this frame-->
+    <node pkg="tf" type="static_transform_publisher" name="odom_to_t265_odom"
+          args="0.2 0.0 0.0 0.0 0.0 0.0 /odom /t265_odom_frame 200" />
+    <!--  uwb data is based on this frame-->
     <node pkg="tf" type="static_transform_publisher" name="odom_to_uwb_odom"
-          args="-0.5 0.0 0.0 0.0 0.0 0.0 /odom /uwb_odom 200" />
-    <node pkg="tf" type="static_transform_publisher" name="robot_to_beacon"
-        args="-0.0 0.0 0.0 0.0 0.0 0.0 /base_link /beacon 100" />
+          args="-0.308 0.0 0.0 0.0 0.0 0.0 /odom /uwb_odom 200" />
+    <!--    camera raw image is based on the child of this frame-->
     <node pkg="tf" type="static_transform_publisher" name="robot_to_camera"
-        args="0.0 0.0 0.0 0.0 0.0 0.0 /base_link /d435_link 1000" />
+          args="0.0 0.0 0.0 0.0 0.0 0.0 /base_link /d435_link 1000" />
+    <!--    <node pkg="tf" type="static_transform_publisher" name="robot_to_beacon"-->
+    <!--        args="-0.5 0.0 0.0 0.0 0.0 0.0 /base_link /beacon 100" />-->
 <!--  <node pkg="tf" type="static_transform_publisher" name="camera_to_imu" args="0.0 0.0 0.0 0.0 0.0 0.0 /base_link /d435_imu_optical_frame 1000" />-->
   <!--<node pkg="tf" type="static_transform_publisher" name="base_link_to_velodyne" args="0.0 0.0 0.0 0.0 0.0 0.0 /base_link /velodyne 200" /> -->
   
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find simulation_launch)/rviz/imr_localization.rviz" />
   
   <node name="odom_filter" pkg="simulation_launch" type="odom_filter" >
-      <param name="vo_pos_cov" value="0.1" />
+      <param name="vo_pos_cov" value="0.3" />
       <param name="vo_vel_cov" value="10" />
-      <param name="uwb_pos_cov" value="0.2" />
-      <param name="imu_ori_cov" value="0.1" />
+      <param name="uwb_pos_cov" value="0.5" />
+      <param name="imu_ori_cov" value="0.3" />
       <param name="init_odom_yaw" value="-1.5707" />
       <param name="init_imu_yaw" value="-0.323" />
-      <param name="distance_UWB_to_base" value="0.508" />
+      <param name="distance_UWB_to_base" value="0.308" />
+      <param name="distance_camera_to_base" value="-0.200" />
   </node>
 
   <node name="path_viz" pkg="simulation_launch" type="viz_path" >
