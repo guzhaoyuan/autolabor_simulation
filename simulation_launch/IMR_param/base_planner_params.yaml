@@ -1,11 +1,8 @@
-#For full documentation of the parameters in this file, and a list of all the
-#parameters available for TrajectoryPlannerROS, please see
-#http://www.ros.org/wiki/base_local_planner
 base_global_planner: "navfn/NavfnROS"
 #base_global_planner: "global_planner/GlobalPlanner"
 #base_global_planner: "loop_path_planner/LoopPathPlanner"
-base_local_planner: "cs_local_planner/CSPlannerROS"
-#base_local_planner: "base_local_planner/TrajectoryPlannerROS"
+#base_local_planner: "cs_local_planner/CSPlannerROS"
+base_local_planner: "base_local_planner/TrajectoryPlannerROS"
 #base_local_planner: "dwa_local_planner/DWAPlannerROS"
 
 recovery_behavior_enabled: false
@@ -18,33 +15,30 @@ NavfnROS:
   visualize_potential: true
 
 TrajectoryPlannerROS:
-  #Set the acceleration limits of the robot
+  # Set the acceleration limits of the robot
   acc_lim_theta: 999.0
   acc_lim_x: 999.0
   acc_lim_y: 0
 
-#   # #Set the velocity limits of the robot
+  # Set the velocity limits of the robot
   max_vel_x: 20.0
   min_vel_x: 0.1
   max_rotational_vel: 20.0
   min_rotational_vel: -20.0
-#   # # min_in_place_rotational_vel: -3
+  # min_in_place_rotational_vel: -3
   max_in_place_rotational_vel: 20
 
   controller_frequency: 20
 
-#   # #The velocity the robot will command when trying to escape from a stuck situation
+  # The velocity the robot will command when trying to escape from a stuck situation
   escape_vel: -1.00
-  
-#   # #For this example, we'll use a holonomic robot
+
+  # For this example, we'll use a holonomic robot
   holonomic_robot: false
 
-#   # #Since we're using a holonomic robot, we'll set the set of y velocities it will sample
-  
-
-#   # #Set the tolerance on achieving a goal
-  xy_goal_tolerance: 1
-  yaw_goal_tolerance: 1
+  # Set the tolerance on achieving a goal
+  xy_goal_tolerance: 0.2
+  yaw_goal_tolerance: 0.2
   latch_xy_goal_tolerance: true
 
   # We'll configure how long and with what granularity we'll forward simulate trajectories
@@ -55,17 +49,17 @@ TrajectoryPlannerROS:
   vx_samples: 10
   vtheta_samples: 20
 
-# Parameters for scoring trajectories
+  # Parameters for scoring trajectories
   occdist_scale: 0.1
   pdist_scale: 32
   gdist_scale: 30
 
-# Dynamic Window Approach is more efficient than Trajectory Rollout.
+  # Dynamic Window Approach is more efficient than Trajectory Rollout.
   dwa: true
 
-# How far the robot must travel before oscillation flags are reset
+  # How far the robot must travel before oscillation flags are reset
   oscillation_reset_dist: 0.05
 
-# Eat up the plan as the robot moves along it
+  # Eat up the plan as the robot moves along it
   prune_plan: true
   meter_scoring: true
