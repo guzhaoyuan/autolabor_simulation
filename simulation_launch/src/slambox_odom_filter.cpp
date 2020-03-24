@@ -1,3 +1,9 @@
+// remap scan2scan_node/odom -> camera_odom
+// no covariance, no twist
+// remap scan2map_node/odom -> lidar_odom
+// no covariance, have twist
+// remap update_cloud -> point_cloud
+//
 #include <Eigen/Dense>
 #include <ros/ros.h>
 #include <nav_msgs/Odometry.h>
@@ -162,9 +168,9 @@ int main(int argc, char** argv) {
   lidar_odom = node.advertise<nav_msgs::Odometry>("lidar_odom", 10);
   point_cloud_pub = node.advertise<sensor_msgs::PointCloud2>("point_cloud", 10);
 
-  ros::Subscriber vo_odom_listener = node.subscribe("scan2scan_odom", 100, vo_odom_callback);
-  ros::Subscriber lidar_odom_listener = node.subscribe("aft_mapped_to_init", 100, lidar_odom_callback);
-  ros::Subscriber point_cloud_listener = node.subscribe("update_cloud", 10, point_cloud_callback);
+  ros::Subscriber vo_odom_listener = node.subscribe("scan2scan_node/odom", 100, vo_odom_callback);
+  ros::Subscriber lidar_odom_listener = node.subscribe("scan2map_node/odom", 100, lidar_odom_callback);
+  ros::Subscriber point_cloud_listener = node.subscribe("fusion_node/update_cloud", 10, point_cloud_callback);
 
   ros::spin();
   return 0;
