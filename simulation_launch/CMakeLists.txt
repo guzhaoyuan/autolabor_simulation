@@ -46,9 +46,6 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 add_executable(odom_filter src/odom_filter.cpp)
 target_link_libraries(odom_filter ${catkin_LIBRARIES})
 
-add_executable(slambox_odom_filter src/slambox_odom_filter.cpp)
-target_link_libraries(slambox_odom_filter ${catkin_LIBRARIES})
-
 add_executable(viz_path src/path.cpp)
 target_link_libraries(viz_path ${catkin_LIBRARIES})
 

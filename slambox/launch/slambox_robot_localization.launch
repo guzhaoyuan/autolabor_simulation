@@ -62,7 +62,7 @@
   </node>
 
   <!-- Change frame_id in imu data -->
-  <node pkg="lego_loam" type="IMU" name="IMU" output="log" >
+  <node pkg="slambox" type="IMU_filter" name="IMU_filter" output="log" >
     <param name="ori_cov" value="1"/>
   </node>
 
