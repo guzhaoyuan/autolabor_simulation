@@ -7,6 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
   nav_msgs
   roscpp
   tf
+  laser_geometry
 )
 
 ###################################
@@ -31,4 +32,4 @@ add_dependencies(simulation_lidar_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${cat
 target_link_libraries(simulation_lidar_node
   ${catkin_LIBRARIES}
 )
-
+target_link_libraries(simulation_lidar_node laser_geometry)

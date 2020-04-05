@@ -206,6 +206,9 @@ void SimulationLidar::pubLaserCallback(const ros::TimerEvent &event){
   getFrame(laserscan);
   map_mutex_.unlock();
   lidar_pub_.publish(laserscan);
+  sensor_msgs::PointCloud2 cloud_out;
+  projector.projectLaser(laserscan, cloud_out);
+  pc_pub_.publish(cloud_out);
 }
 
 void SimulationLidar::mapReceived(const nav_msgs::OccupancyGrid::ConstPtr &grid_map){
@@ -224,6 +227,7 @@ void SimulationLidar::odomCallback(const nav_msgs::Odometry::ConstPtr& odom_msg)
 
 void SimulationLidar::run(){
   lidar_pub_ = nh_.advertise<sensor_msgs::LaserScan>("scan", 1);
+  pc_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("points", 1);
   map_sub_ = nh_.subscribe<nav_msgs::OccupancyGrid>(stage_map_topic_, 1, &SimulationLidar::mapReceived, this);
   if (use_topic_odom_) {
     odom_sub_ = nh_.subscribe<nav_msgs::Odometry>(odom_topic_, 10, &SimulationLidar::odomCallback, this);
