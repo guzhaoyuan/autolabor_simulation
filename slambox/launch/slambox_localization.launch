@@ -70,8 +70,13 @@
    <node pkg="tf" type="static_transform_publisher" name="sensor_init_to_odom"
          args="0.0 0.0 0.0 0.0 0.0 0.0 /sensor_init /odom 200" />
 <!--  <node pkg="tf" type="static_transform_publisher" name="base_link_to_velodyne" args="0.0 0.0 0.0 0.0 0.0 0.0 /base_link /velodyne 200" />-->
-  
+
+  <node name="odometry_for_elev_map" pkg="topic_tools" type="transform"
+        args="/odometry/filtered /odometry_for_elevation_map
+        geometry_msgs/PoseWithCovarianceStamped
+        'geometry_msgs.msg.PoseWithCovarianceStamped(header=m.header,pose=m.pose)' --import geometry_msgs" />
+
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find slambox)/rviz/mapping.rviz" />
   <node pkg="rosbag" type="play" name="player" output="screen"
-        args="/home/gzy/Downloads/test.bag --clock -s 0 -r 1 --pause"/>
+        args="/home/gzy/bags/slambox/test.bag --clock -s 0 -r 1 --pause"/>
 </launch>
