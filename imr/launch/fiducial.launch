@@ -1,0 +1,11 @@
+<launch>
+    <param name="use_sim_time" value="true"/>
+
+    <node name="bag_player" pkg="rosbag" type="play" output="screen"
+          args="/home/gzy/bags/fiducial/2020-03-24-14-14-54.bag -r 1 --pause --clock" />
+
+    <node name="rviz" pkg="rviz" type="rviz" output="log"
+          args="-d $(find imr)/rviz/fiducial.rviz"/>
+
+    <include file="$(find imr_perception)/launch/imr_t265_detect.launch"/>
+</launch>
