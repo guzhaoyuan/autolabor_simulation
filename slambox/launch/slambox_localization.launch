@@ -76,6 +76,14 @@
         geometry_msgs/PoseWithCovarianceStamped
         'geometry_msgs.msg.PoseWithCovarianceStamped(header=m.header,pose=m.pose)' --import geometry_msgs" />
 
+  <node pkg="elevation_mapping" type="elevation_mapping"
+        name="elevation_mapping" output="screen">
+    <rosparam command="load" file="$(find slambox)/config/slambox.yaml" />
+    <rosparam command="load" file="$(find slambox)/config/map.yaml" />
+    <!--    <rosparam command="load" file="$(find elevation_mapping)/config/sensor_processors/velodyne_HDL-32E.yaml" />-->
+    <rosparam command="load" file="$(find elevation_mapping)/config/sensor_processors/perfect.yaml" />
+  </node>
+
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find slambox)/rviz/mapping.rviz" />
   <node pkg="rosbag" type="play" name="player" output="screen"
         args="/home/gzy/bags/slambox/test.bag --clock -s 0 -r 1 --pause"/>
