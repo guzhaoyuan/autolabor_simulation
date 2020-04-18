@@ -37,6 +37,11 @@ class OdomFilter {
         ros::Duration(1).sleep();
       }
     }
+    fiducial0_W.topLeftCorner<3,3>() <<
+        1, 0, 0,
+        0, 1, 0,
+        0, 0, 1;
+    fiducial0_W.topRightCorner<3,1>() << 0, 2.44, 0;
   }
 
   void run() {
@@ -230,7 +235,8 @@ class OdomFilter {
     Eigen::Quaterniond q_origin(msg->orientation.w, msg->orientation.x, msg->orientation.y, msg->orientation.z);
 
     auto euler = q_origin.toRotationMatrix().eulerAngles(2, 0, 2);
-    ROS_INFO("The angles are: %.2f, %.2f, %.2f", euler[0],euler[1],euler[2]);
+    ROS_INFO("The IMU euler angles are: %.2f, %.2f, %.2f", euler[0],euler[1],
+        euler[2]);
 
     return euler[0];
   }
@@ -322,6 +328,7 @@ class OdomFilter {
   Eigen::Vector3d first_uwb_pos = Eigen::Vector3d::Zero();
   Eigen::Vector3d first_luwb_pos = Eigen::Vector3d::Zero();
   Eigen::Vector3d first_ruwb_pos = Eigen::Vector3d::Zero();
+  Eigen::Matrix4d fiducial0_W;
 };
 
 

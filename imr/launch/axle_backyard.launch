@@ -70,30 +70,39 @@
 <!--                                    false, false, false]</rosparam>-->
 <!--  </node>-->
 
-<!--    <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0.0 0.0 0.0 0.0 0.0 0.0 /map /odom 200" />-->
+<!--    t265 image rectify and fiducial detection-->
+    <include file="$(find imr_perception)/launch/imr_t265_detect.launch"/>
+
+<!--    <node pkg="tf" type="static_transform_publisher" name="map_to_fiducial"-->
+<!--          args="0.0 2.44 1.5 1.571 0.0 1.571 /map /fiducial 200" />-->
     <!--  t265 odom is based on this frame-->
     <node pkg="tf" type="static_transform_publisher" name="odom_to_t265_odom"
           args="0.2 0.0 0.0 0.0 0.0 0.0 /odom /t265_odom_frame 200" />
     <!--  uwb data is based on this frame-->
     <node pkg="tf" type="static_transform_publisher" name="odom_to_uwb_odom"
           args="-0.308 0.0 0.0 0.0 0.0 0.0 /odom /uwb_odom 200" />
+    <node pkg="tf" type="static_transform_publisher" name="odom_to_luwb_odom"
+          args="0.02 0.28 0.0 0.0 0.0 0.0 /odom /luwb_odom 200" />
+    <node pkg="tf" type="static_transform_publisher" name="odom_to_ruwb_odom"
+          args="0.02 -0.28 0.0 0.0 0.0 0.0 /odom /ruwb_odom 200" />
     <!--    camera raw image is based on the child of this frame-->
-    <node pkg="tf" type="static_transform_publisher" name="robot_to_camera"
-          args="0.0 0.0 0.0 0.0 0.0 0.0 /base_link /d435_link 1000" />
+<!--    <node pkg="tf" type="static_transform_publisher" name="robot_to_camera"-->
+<!--          args="0.0 0.0 0.0 0.0 0.0 0.0 /base_link /d435_link 1000" />-->
     <!--    <node pkg="tf" type="static_transform_publisher" name="robot_to_beacon"-->
     <!--        args="-0.5 0.0 0.0 0.0 0.0 0.0 /base_link /beacon 100" />-->
 <!--  <node pkg="tf" type="static_transform_publisher" name="camera_to_imu" args="0.0 0.0 0.0 0.0 0.0 0.0 /base_link /d435_imu_optical_frame 1000" />-->
   <!--<node pkg="tf" type="static_transform_publisher" name="base_link_to_velodyne" args="0.0 0.0 0.0 0.0 0.0 0.0 /base_link /velodyne 200" /> -->
   
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find imr)/rviz/imr_localization.rviz" />
+  <node name="rviz" pkg="rviz" type="rviz"
+        args="-d $(find imr)/rviz/axle_localization.rviz" />
   
-  <node name="odom_filter" pkg="imr" type="odom_filter" >
+  <node name="odom_filter" pkg="imr" type="odom_filter" output="screen" >
       <param name="vo_pos_cov" value="0.3" />
       <param name="vo_vel_cov" value="10" />
       <param name="uwb_pos_cov" value="0.5" />
       <param name="imu_ori_cov" value="0.3" />
       <param name="init_odom_yaw" value="1.571" />
-      <param name="init_imu_yaw" value="-0.323" />
+      <param name="init_imu_yaw" value="0" />
       <param name="distance_UWB_to_base" value="0.308" />
       <param name="distance_UWB_to_base_X" value="0.308" />
       <param name="distance_UWB_to_base_Y" value="0.308" />
@@ -107,6 +116,6 @@
 
   <!-- Play bag -->
   <node pkg="rosbag" type="play" name="player" output="screen"
-        args="/home/gzy/bags/IMR/backyard/backyard_2020-04-14-14-32-51.bag --clock -s 0 -r 1 --pause"/>
+        args="/home/gzy/bags/IMR/backyard/backyard_2020-04-14-14-32-51.bag --clock -s 0 -r 1 --pause -l"/>
 
 </launch>
