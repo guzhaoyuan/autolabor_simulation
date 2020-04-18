@@ -10,46 +10,46 @@
   </node>
 
   <!-- robot_localization EKF node for the odom frame -->
-  <node pkg="robot_localization" type="ekf_localization_node" name="robot_localization_ekf_node_odom"  clear_params="true">
-    <param name="frequency" value="100" />
-    <param name="transform_time_offset" value="0.05" />
-    <param name="sensor_timeout" value="0.2" />
-    <param name="two_d_mode" value="true" />
-    <param name="publish_tf" value="true" />
-    <param name="map_frame" value="map" />
-    <param name="odom_frame" value="odom" />
-    <param name="base_link_frame" value="base_link" />
-    <param name="world_frame" value="odom" />
-    <param name="print_diagnostics" value="true" />
+<!--  <node pkg="robot_localization" type="ekf_localization_node" name="robot_localization_ekf_node_odom"  clear_params="true">-->
+<!--    <param name="frequency" value="100" />-->
+<!--    <param name="transform_time_offset" value="0.05" />-->
+<!--    <param name="sensor_timeout" value="0.2" />-->
+<!--    <param name="two_d_mode" value="true" />-->
+<!--    <param name="publish_tf" value="true" />-->
+<!--    <param name="map_frame" value="map" />-->
+<!--    <param name="odom_frame" value="odom" />-->
+<!--    <param name="base_link_frame" value="base_link" />-->
+<!--    <param name="world_frame" value="odom" />-->
+<!--    <param name="print_diagnostics" value="true" />-->
 
-    <rosparam param="initial_state">[ 0.0,  0.0,  0.0,
-                                      0.0,  0.0,  0.0,
-                                      0.0,  0.0,  0.0,
-                                      0.0,  0.0,  0.0,
-                                      0.0,  0.0,  0.0]</rosparam>
+<!--    <rosparam param="initial_state">[ 0.0,  0.0,  0.0,-->
+<!--                                      0.0,  0.0,  0.0,-->
+<!--                                      0.0,  0.0,  0.0,-->
+<!--                                      0.0,  0.0,  0.0,-->
+<!--                                      0.0,  0.0,  0.0]</rosparam>-->
 
-    <!-- The camera is bad at position, only use velocity here. -->
-    <param name="odom0" value="t265/odom" />
-    <rosparam param="odom0_config">[true, true, false, false, false, true,
-        false, false, false, false, false, false,
-                                    false, false, false]</rosparam>
+<!--    &lt;!&ndash; The camera is bad at position, only use velocity here. &ndash;&gt;-->
+<!--    <param name="odom0" value="t265/odom" />-->
+<!--    <rosparam param="odom0_config">[true, true, false, false, false, true,-->
+<!--        false, false, false, false, false, false,-->
+<!--                                    false, false, false]</rosparam>-->
 
-    <!-- The UWB gives a bad position estimate here. -->
-    <param name="odom1" value="dwm/odom" />
-    <rosparam param="odom1_config">[true, true, false, false, false, false,
-                                    false, false, false, false, false, false,
-                                    false, false, false]</rosparam>
+<!--    &lt;!&ndash; The UWB gives a bad position estimate here. &ndash;&gt;-->
+<!--    <param name="odom1" value="dwm/odom" />-->
+<!--    <rosparam param="odom1_config">[true, true, false, false, false, false,-->
+<!--                                    false, false, false, false, false, false,-->
+<!--                                    false, false, false]</rosparam>-->
 
-    <!-- IMU handles the linear acceleration and angular velocity. -->
-    <param name="imu0" value="imu/odom"/>
-    <param name="imu0_differential" value="false" />
-    <param name="imu0_relative" value="false" />
-    <param name="imu0_queue_size" value="10" />
-    <param name="imu0_remove_gravitational_acceleration" value="true" />
-    <rosparam param="imu0_config">[false, false, false, false, false, true,
-                                   false, false, false, false, false, true,
-        true, true, true]</rosparam>
-  </node>
+<!--    &lt;!&ndash; IMU handles the linear acceleration and angular velocity. &ndash;&gt;-->
+<!--    <param name="imu0" value="imu/odom"/>-->
+<!--    <param name="imu0_differential" value="false" />-->
+<!--    <param name="imu0_relative" value="false" />-->
+<!--    <param name="imu0_queue_size" value="10" />-->
+<!--    <param name="imu0_remove_gravitational_acceleration" value="true" />-->
+<!--    <rosparam param="imu0_config">[false, false, false, false, false, false,-->
+<!--                                   false, false, false, false, false, true,-->
+<!--        true, true, true]</rosparam>-->
+<!--  </node>-->
 
   <!-- robot_localization EKF node for the map frame -->
 <!--  <node pkg="robot_localization" type="ekf_localization_node" name="robot_localization_ekf_node_map"  clear_params="true">-->
@@ -70,8 +70,7 @@
 <!--                                    false, false, false]</rosparam>-->
 <!--  </node>-->
 
-    <!--  assume the robot center is between the two wheels.-->
-    <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0.0 0.0 0.0 0.0 0.0 0.0 /map /odom 200" />
+<!--    <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0.0 0.0 0.0 0.0 0.0 0.0 /map /odom 200" />-->
     <!--  t265 odom is based on this frame-->
     <node pkg="tf" type="static_transform_publisher" name="odom_to_t265_odom"
           args="0.2 0.0 0.0 0.0 0.0 0.0 /odom /t265_odom_frame 200" />
@@ -93,8 +92,11 @@
       <param name="vo_vel_cov" value="10" />
       <param name="uwb_pos_cov" value="0.5" />
       <param name="imu_ori_cov" value="0.3" />
-      <param name="init_odom_yaw" value="-1.5707" />
+      <param name="init_odom_yaw" value="1.571" />
       <param name="init_imu_yaw" value="-0.323" />
+      <param name="distance_UWB_to_base" value="0.308" />
+      <param name="distance_UWB_to_base_X" value="0.308" />
+      <param name="distance_UWB_to_base_Y" value="0.308" />
       <param name="distance_UWB_to_base" value="0.308" />
       <param name="distance_camera_to_base" value="-0.200" />
   </node>
@@ -105,6 +107,6 @@
 
   <!-- Play bag -->
   <node pkg="rosbag" type="play" name="player" output="screen"
-        args="/home/gzy/bags/imr_sensors_2020-03-12-16-30-50.bag --clock -s 0 -r 1 --pause"/>
+        args="/home/gzy/bags/IMR/backyard/backyard_2020-04-14-14-32-51.bag --clock -s 0 -r 1 --pause"/>
 
 </launch>

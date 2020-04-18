@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   tf
+  apriltag_ros
 )
 find_package (Eigen3 REQUIRED)
 
