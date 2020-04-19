@@ -5,11 +5,8 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /TF1
         - /TF1/Frames1
         - /UWB Odometry1/Shape1
-        - /Imu1/Box properties1
-        - /Imu1/Axes properties1
       Splitter Ratio: 0.6472019553184509
     Tree Height: 487
   - Class: rviz/Selection
@@ -63,6 +60,8 @@ Visualization Manager:
         All Enabled: false
         base_link:
           Value: true
+        base_link_in_odom:
+          Value: true
         d435_accel_frame:
           Value: false
         d435_accel_optical_frame:
@@ -93,18 +92,18 @@ Visualization Manager:
           Value: false
         d435_link:
           Value: false
-        fiducial:
+        detected_fiducial:
           Value: true
-        lhs_uwb_link:
+        fiducial0:
           Value: true
         lidar:
-          Value: true
+          Value: false
         luwb_odom:
           Value: true
+        map:
+          Value: true
         odom:
-          Value: true
-        rhs_uwb_link:
-          Value: true
+          Value: false
         ruwb_odom:
           Value: true
         t265_accel_frame:
@@ -125,85 +124,95 @@ Visualization Manager:
           Value: false
         t265_link:
           Value: true
-        t265_odom_frame:
-          Value: false
         t265_pose_frame:
           Value: false
         uwb_odom:
-          Value: true
+          Value: false
       Marker Scale: 1
       Name: TF
-      Show Arrows: false
+      Show Arrows: true
       Show Axes: true
       Show Names: true
       Tree:
-        odom:
-          luwb_odom:
+        map:
+          base_link_in_odom:
             {}
-          ruwb_odom:
+          fiducial0:
             {}
-          t265_odom_frame:
-            t265_pose_frame:
-              t265_link:
-                d435_link:
-                  d435_accel_frame:
-                    d435_accel_optical_frame:
-                      {}
-                  d435_aligned_depth_to_color_frame:
-                    d435_color_optical_frame:
-                      {}
-                  d435_aligned_depth_to_infra1_frame:
-                    d435_infra1_optical_frame:
-                      {}
-                  d435_color_frame:
+          odom:
+            base_link:
+              d435_link:
+                d435_accel_frame:
+                  d435_accel_optical_frame:
                     {}
-                  d435_depth_frame:
-                    d435_depth_optical_frame:
-                      {}
-                  d435_gyro_frame:
-                    d435_imu_optical_frame:
-                      {}
-                  d435_infra1_frame:
+                d435_aligned_depth_to_color_frame:
+                  d435_color_optical_frame:
                     {}
-                  d435_infra2_frame:
-                    d435_infra2_optical_frame:
-                      {}
-                lhs_uwb_link:
+                d435_aligned_depth_to_infra1_frame:
+                  d435_infra1_optical_frame:
+                    {}
+                d435_color_frame:
                   {}
-                rhs_uwb_link:
+                d435_depth_frame:
+                  d435_depth_optical_frame:
+                    {}
+                d435_gyro_frame:
+                  d435_imu_optical_frame:
+                    {}
+                d435_infra1_frame:
                   {}
-                t265_accel_frame:
-                  t265_accel_optical_frame:
+                d435_infra2_frame:
+                  d435_infra2_optical_frame:
                     {}
-                t265_fisheye1_frame:
-                  t265_fisheye1_optical_frame:
-                    fiducial:
+              lidar:
+                {}
+              t265_pose_frame:
+                t265_link:
+                  t265_accel_frame:
+                    t265_accel_optical_frame:
                       {}
-                t265_fisheye2_frame:
-                  t265_fisheye2_optical_frame:
-                    {}
-                t265_gyro_frame:
-                  t265_gyro_optical_frame:
-                    {}
-          uwb_odom:
-            {}
+                  t265_fisheye1_frame:
+                    t265_fisheye1_optical_frame:
+                      detected_fiducial:
+                        {}
+                  t265_fisheye2_frame:
+                    t265_fisheye2_optical_frame:
+                      {}
+                  t265_gyro_frame:
+                    t265_gyro_optical_frame:
+                      {}
+            luwb_odom:
+              {}
+            ruwb_odom:
+              {}
+            uwb_odom:
+              {}
       Update Interval: 0
       Value: true
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
-      Enabled: false
+      Enabled: true
       Links:
         All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        lidar:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
       Name: RobotModel
       Robot Description: robot_description
       TF Prefix: ""
       Update Interval: 0
-      Value: false
+      Value: true
       Visual Enabled: true
     - Angle Tolerance: 0.10000000149011612
       Class: rviz/Odometry
@@ -310,7 +319,7 @@ Visualization Manager:
         Enable acceleration: false
       Axes properties:
         Axes scale: 1
-        Enable axes: true
+        Enable axes: false
       Box properties:
         Box alpha: 0.5
         Box color: 255; 0; 0
@@ -364,7 +373,7 @@ Visualization Manager:
   Global Options:
     Background Color: 0; 0; 0
     Default Light: true
-    Fixed Frame: odom
+    Fixed Frame: map
     Frame Rate: 30
   Name: root
   Tools:
@@ -388,7 +397,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 4.824375152587891
+      Distance: 5.710576057434082
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -403,10 +412,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.5697963237762451
-      Target Frame: <Fixed Frame>
+      Pitch: 0.5497972369194031
+      Target Frame: base_link
       Value: Orbit (rviz)
-      Yaw: 3.175401210784912
+      Yaw: 0.17538000643253326
     Saved: ~
 Window Geometry:
   Displays:

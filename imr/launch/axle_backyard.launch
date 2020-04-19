@@ -10,52 +10,52 @@
   </node>
 
   <!-- robot_localization EKF node for the odom frame -->
-<!--  <node pkg="robot_localization" type="ekf_localization_node" name="robot_localization_ekf_node_odom"  clear_params="true">-->
-<!--    <param name="frequency" value="100" />-->
-<!--    <param name="transform_time_offset" value="0.05" />-->
-<!--    <param name="sensor_timeout" value="0.2" />-->
-<!--    <param name="two_d_mode" value="true" />-->
-<!--    <param name="publish_tf" value="true" />-->
-<!--    <param name="map_frame" value="map" />-->
-<!--    <param name="odom_frame" value="odom" />-->
-<!--    <param name="base_link_frame" value="base_link" />-->
-<!--    <param name="world_frame" value="odom" />-->
-<!--    <param name="print_diagnostics" value="true" />-->
+  <node pkg="robot_localization" type="ekf_localization_node" name="robot_localization_ekf_node_odom"  clear_params="true">
+    <param name="frequency" value="100" />
+    <param name="transform_time_offset" value="0.05" />
+    <param name="sensor_timeout" value="0.2" />
+    <param name="two_d_mode" value="true" />
+    <param name="publish_tf" value="true" />
+    <param name="map_frame" value="map" />
+    <param name="odom_frame" value="odom" />
+    <param name="base_link_frame" value="base_link" />
+    <param name="world_frame" value="odom" />
+    <param name="print_diagnostics" value="true" />
 
-<!--    <rosparam param="initial_state">[ 0.0,  0.0,  0.0,-->
-<!--                                      0.0,  0.0,  0.0,-->
-<!--                                      0.0,  0.0,  0.0,-->
-<!--                                      0.0,  0.0,  0.0,-->
-<!--                                      0.0,  0.0,  0.0]</rosparam>-->
+    <rosparam param="initial_state">[ 0.0,  0.0,  0.0,
+                                      0.0,  0.0,  0.0,
+                                      0.0,  0.0,  0.0,
+                                      0.0,  0.0,  0.0,
+                                      0.0,  0.0,  0.0]</rosparam>
 
-<!--    &lt;!&ndash; The camera is bad at position, only use velocity here. &ndash;&gt;-->
-<!--    <param name="odom0" value="t265/odom" />-->
-<!--    <rosparam param="odom0_config">[true, true, false, false, false, true,-->
-<!--        false, false, false, false, false, false,-->
-<!--                                    false, false, false]</rosparam>-->
+    <!-- The camera is bad at position, only use velocity here. -->
+    <param name="odom0" value="t265/odom" />
+    <rosparam param="odom0_config">[true, true, false, false, false, true,
+        false, false, false, false, false, false,
+                                    false, false, false]</rosparam>
 
-<!--    &lt;!&ndash; The UWB gives a bad position estimate here. &ndash;&gt;-->
-<!--    <param name="odom1" value="dwm/odom" />-->
-<!--    <rosparam param="odom1_config">[true, true, false, false, false, false,-->
-<!--                                    false, false, false, false, false, false,-->
-<!--                                    false, false, false]</rosparam>-->
+    <!-- The UWB gives a bad position estimate here. -->
+    <param name="odom1" value="dwm/odom" />
+    <rosparam param="odom1_config">[true, true, false, false, false, false,
+                                    false, false, false, false, false, false,
+                                    false, false, false]</rosparam>
 
-<!--    &lt;!&ndash; IMU handles the linear acceleration and angular velocity. &ndash;&gt;-->
-<!--    <param name="imu0" value="imu/odom"/>-->
-<!--    <param name="imu0_differential" value="false" />-->
-<!--    <param name="imu0_relative" value="false" />-->
-<!--    <param name="imu0_queue_size" value="10" />-->
-<!--    <param name="imu0_remove_gravitational_acceleration" value="true" />-->
-<!--    <rosparam param="imu0_config">[false, false, false, false, false, false,-->
-<!--                                   false, false, false, false, false, true,-->
-<!--        true, true, true]</rosparam>-->
-<!--  </node>-->
+    <!-- IMU handles the linear acceleration and angular velocity. -->
+    <param name="imu0" value="imu/odom"/>
+    <param name="imu0_differential" value="false" />
+    <param name="imu0_relative" value="false" />
+    <param name="imu0_queue_size" value="10" />
+    <param name="imu0_remove_gravitational_acceleration" value="true" />
+    <rosparam param="imu0_config">[false, false, false, false, false, true,
+                                   false, false, false, false, false, true,
+        true, true, true]</rosparam>
+  </node>
 
   <!-- robot_localization EKF node for the map frame -->
 <!--  <node pkg="robot_localization" type="ekf_localization_node" name="robot_localization_ekf_node_map"  clear_params="true">-->
 <!--    <param name="frequency" value="400" />-->
 <!--    <param name="transform_time_offset" value="0.05" />-->
-<!--    <param name="sensor_timeout" value="0.2" />  -->
+<!--    <param name="sensor_timeout" value="0.2" />-->
 <!--    <param name="two_d_mode" value="true" />-->
 <!--    <param name="publish_tf" value="true" />-->
 <!--    <param name="map_frame" value="map" />-->
@@ -64,7 +64,7 @@
 <!--    <param name="world_frame" value="map" />-->
 <!--    <param name="print_diagnostics" value="true" />-->
 <!--    &lt;!&ndash; The UWB gives a bad position estimate here. &ndash;&gt;-->
-<!--    <param name="odom0" value="dwm/odom" />-->
+<!--    <param name="odom0" value="tag/odom" />-->
 <!--    <rosparam param="odom0_config">[true, true, false, false, false, false,-->
 <!--                                    false, false, false, false, false, false,-->
 <!--                                    false, false, false]</rosparam>-->
@@ -73,11 +73,14 @@
 <!--    t265 image rectify and fiducial detection-->
     <include file="$(find imr_perception)/launch/imr_t265_detect.launch"/>
 
-<!--    <node pkg="tf" type="static_transform_publisher" name="map_to_fiducial"-->
-<!--          args="0.0 2.44 1.5 1.571 0.0 1.571 /map /fiducial 200" />-->
+    <node pkg="tf" type="static_transform_publisher" name="map_to_fiducial"
+          args="0.0 2.44 0.8 1.571 0.0 1.571 /map /fiducial0 200" />
     <!--  t265 odom is based on this frame-->
-    <node pkg="tf" type="static_transform_publisher" name="odom_to_t265_odom"
-          args="0.2 0.0 0.0 0.0 0.0 0.0 /odom /t265_odom_frame 200" />
+<!--    <node pkg="tf" type="static_transform_publisher" name="odom_to_t265_odom"-->
+<!--          args="0.2 0.0 0.0 0.0 0.0 0.0 /odom /t265_odom_frame 200" />-->
+    <node pkg="tf" type="static_transform_publisher"
+          name="base_link_to_t265"
+          args="0.2 0.0 0.0 0.0 0.0 0.0 /base_link /t265_pose_frame 200" />
     <!--  uwb data is based on this frame-->
     <node pkg="tf" type="static_transform_publisher" name="odom_to_uwb_odom"
           args="-0.308 0.0 0.0 0.0 0.0 0.0 /odom /uwb_odom 200" />
@@ -86,8 +89,8 @@
     <node pkg="tf" type="static_transform_publisher" name="odom_to_ruwb_odom"
           args="0.02 -0.28 0.0 0.0 0.0 0.0 /odom /ruwb_odom 200" />
     <!--    camera raw image is based on the child of this frame-->
-<!--    <node pkg="tf" type="static_transform_publisher" name="robot_to_camera"-->
-<!--          args="0.0 0.0 0.0 0.0 0.0 0.0 /base_link /d435_link 1000" />-->
+    <node pkg="tf" type="static_transform_publisher" name="robot_to_d435"
+          args="0.0 0.0 0.0 0.0 0.0 0.0 /base_link /d435_link 200" />
     <!--    <node pkg="tf" type="static_transform_publisher" name="robot_to_beacon"-->
     <!--        args="-0.5 0.0 0.0 0.0 0.0 0.0 /base_link /beacon 100" />-->
 <!--  <node pkg="tf" type="static_transform_publisher" name="camera_to_imu" args="0.0 0.0 0.0 0.0 0.0 0.0 /base_link /d435_imu_optical_frame 1000" />-->
@@ -101,10 +104,9 @@
       <param name="vo_vel_cov" value="10" />
       <param name="uwb_pos_cov" value="0.5" />
       <param name="imu_ori_cov" value="0.3" />
-      <param name="init_odom_yaw" value="1.571" />
+      <param name="init_odom_yaw" value="3.14" />
       <param name="init_imu_yaw" value="0" />
-      <param name="distance_UWB_to_base" value="0.308" />
-      <param name="distance_UWB_to_base_X" value="0.308" />
+      <param name="distance_UWB_to_base_X" value="0.02" />
       <param name="distance_UWB_to_base_Y" value="0.308" />
       <param name="distance_UWB_to_base" value="0.308" />
       <param name="distance_camera_to_base" value="-0.200" />
@@ -116,6 +118,6 @@
 
   <!-- Play bag -->
   <node pkg="rosbag" type="play" name="player" output="screen"
-        args="/home/gzy/bags/IMR/backyard/backyard_2020-04-14-14-32-51.bag --clock -s 0 -r 1 --pause -l"/>
+        args="/home/gzy/bags/IMR/backyard/backyard_2020-04-14-14-32-51.bag --clock -s 0 -r 1 --pause /tf:=/tf_null"/>
 
 </launch>
