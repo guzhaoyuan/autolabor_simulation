@@ -5,6 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
+        - /TF1
         - /TF1/Frames1
         - /UWB Odometry1/Shape1
       Splitter Ratio: 0.6472019553184509
@@ -60,8 +61,6 @@ Visualization Manager:
         All Enabled: false
         base_link:
           Value: true
-        base_link_in_odom:
-          Value: true
         d435_accel_frame:
           Value: false
         d435_accel_optical_frame:
@@ -103,9 +102,9 @@ Visualization Manager:
         map:
           Value: true
         odom:
-          Value: false
-        ruwb_odom:
           Value: true
+        ruwb_odom:
+          Value: false
         t265_accel_frame:
           Value: false
         t265_accel_optical_frame:
@@ -113,7 +112,7 @@ Visualization Manager:
         t265_fisheye1_frame:
           Value: false
         t265_fisheye1_optical_frame:
-          Value: false
+          Value: true
         t265_fisheye2_frame:
           Value: false
         t265_fisheye2_optical_frame:
@@ -123,7 +122,7 @@ Visualization Manager:
         t265_gyro_optical_frame:
           Value: false
         t265_link:
-          Value: true
+          Value: false
         t265_pose_frame:
           Value: false
         uwb_odom:
@@ -135,8 +134,6 @@ Visualization Manager:
       Show Names: true
       Tree:
         map:
-          base_link_in_odom:
-            {}
           fiducial0:
             {}
           odom:
@@ -265,7 +262,7 @@ Visualization Manager:
           Scale: 1
           Value: true
         Value: false
-      Enabled: true
+      Enabled: false
       Keep: 3
       Name: Visual Odometry
       Position Tolerance: 0.10000000149011612
@@ -281,7 +278,7 @@ Visualization Manager:
         Value: Arrow
       Topic: /t265/odom
       Unreliable: false
-      Value: true
+      Value: false
     - Class: rviz/Axes
       Enabled: false
       Length: 1
@@ -397,7 +394,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 5.710576057434082
+      Distance: 3.211577892303467
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -412,10 +409,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5497972369194031
+      Pitch: 1.3197956085205078
       Target Frame: base_link
       Value: Orbit (rviz)
-      Yaw: 0.17538000643253326
+      Yaw: 0.10537994652986526
     Saved: ~
 Window Geometry:
   Displays:

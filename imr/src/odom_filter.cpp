@@ -13,6 +13,7 @@ class OdomFilter {
 
     ros::NodeHandle private_node("~");
 
+    private_node.getParam("tag_pos_cov", tag_pos_cov);
     private_node.getParam("vo_pos_cov", vo_pos_cov);
     private_node.getParam("vo_vel_cov", vo_pos_cov);
     private_node.getParam("uwb_pos_cov", uwb_pos_cov);
@@ -20,6 +21,8 @@ class OdomFilter {
     private_node.getParam("init_imu_yaw", init_imu_yaw);
     private_node.getParam("imu_ori_cov", imu_ori_cov);
     private_node.getParam("distance_UWB_to_base", distance_UWB_to_base);
+    private_node.getParam("distance_UWB_to_base_X", distance_UWB_to_base_X);
+    private_node.getParam("distance_UWB_to_base_Y", distance_UWB_to_base_Y);
     private_node.getParam("distance_camera_to_base", distance_camera_to_base);
 
     run();
@@ -156,7 +159,7 @@ class OdomFilter {
 
     nav_msgs::Odometry modified_msg;
     modified_msg.header.stamp = ros::Time::now();
-    modified_msg.header.frame_id = "uwb_odom";
+    modified_msg.header.frame_id = "luwb_odom";
     modified_msg.child_frame_id = "base_link";
 
     // Try to rotate the UWB sensor reading to align with the map frame.
@@ -328,11 +331,29 @@ class OdomFilter {
       tf::StampedTransform tf_OB;
       listener.lookupTransform("/odom", "/base_link",
                                ros::Time(0), tf_OB);
+      tf::Transform tf_WB = tf_WF * tf_BF.inverse();
+      tf::Transform tf_WO = tf_WB * tf_OB.inverse();
+//      tf_broadcaster_.sendTransform(tf::StampedTransform(tf_WO,
+//        ros::Time::now(), "map", "odom"));
 
-      tf::Transform tf_transform_WO = tf_WF * tf_BF.inverse() * tf_OB.inverse();
-      tf_broadcaster_.sendTransform(tf::StampedTransform(tf_transform_WO,
-        ros::Time::now(), "map", "odom"));
       nav_msgs::Odometry tag_msg;
+      tag_msg.header.stamp = ros::Time::now();
+      tag_msg.header.frame_id = "map";
+      tag_msg.child_frame_id = "base_link";
+      tag_msg.pose.pose.position.x = tf_WB.getOrigin().getX();
+      tag_msg.pose.pose.position.y = tf_WB.getOrigin().getY();
+      tag_msg.pose.pose.position.z = 0;
+      tf::Quaternion q_WB = tf_WB.getRotation();
+      tag_msg.pose.pose.orientation.x = q_WB.x();
+      tag_msg.pose.pose.orientation.y = q_WB.y();
+      tag_msg.pose.pose.orientation.z = q_WB.z();
+      tag_msg.pose.pose.orientation.w = q_WB.w();
+      tag_msg.pose.covariance = {tag_pos_cov, 0., 0., 0., 0., 0.,
+                                      0., tag_pos_cov, 0., 0., 0., 0.,
+                                      0., 0., 0., 0., 0., 0.,
+                                      0., 0., 0., 0., 0., 0.,
+                                      0., 0., 0., 0., 0., 0.,
+                                      0., 0., 0., 0., 0., 0.};
 
       tag_odom.publish(tag_msg);
     } catch (tf::TransformException ex) {
@@ -365,6 +386,7 @@ class OdomFilter {
   double imu_init_val = 0;
   Eigen::Quaterniond q_first;
 
+  double tag_pos_cov = 0.0;
   double vo_pos_cov = 0.0;
   double vo_vel_cov = 0.0;
   double uwb_pos_cov = 0.0;
