@@ -30,15 +30,17 @@
 
     <!-- The camera is bad at position, only use velocity here. -->
     <param name="odom0" value="t265/odom" />
-    <rosparam param="odom0_config">[true, true, false, false, false, true,
+    <rosparam param="odom0_config">[
+        true, true, false, false, false, true,
         false, false, false, false, false, false,
-                                    false, false, false]</rosparam>
+        false, false, false]</rosparam>
 
     <!-- The UWB gives a bad position estimate here. -->
     <param name="odom1" value="dwm/odom" />
-    <rosparam param="odom1_config">[true, true, false, false, false, false,
-                                    false, false, false, false, false, false,
-                                    false, false, false]</rosparam>
+    <rosparam param="odom1_config">[
+        true, true, false, false, false, false,
+        false, false, false, false, false, false,
+        false, false, false]</rosparam>
 
     <!-- IMU handles the linear acceleration and angular velocity. -->
     <param name="imu0" value="imu/odom"/>
@@ -46,8 +48,9 @@
     <param name="imu0_relative" value="false" />
     <param name="imu0_queue_size" value="10" />
     <param name="imu0_remove_gravitational_acceleration" value="true" />
-    <rosparam param="imu0_config">[false, false, false, false, false, true,
-                                   false, false, false, false, false, true,
+    <rosparam param="imu0_config">[
+        false, false, false, false, false, true,
+        false, false, false, false, false, true,
         true, true, true]</rosparam>
   </node>
 
@@ -63,11 +66,27 @@
     <param name="base_link_frame" value="base_link" />
     <param name="world_frame" value="map" />
     <param name="print_diagnostics" value="true" />
-    <!-- The UWB gives a bad position estimate here. -->
+
     <param name="odom0" value="tag/odom" />
     <rosparam param="odom0_config">[true, true, false, false, false, true,
                                     false, false, false, false, false, false,
                                     false, false, false]</rosparam>
+
+<!--    <param name="odom1" value="dwm/odom" />-->
+<!--    <rosparam param="odom1_config">[-->
+<!--      true, true, false, false, false, false,-->
+<!--      false, false, false, false, false, false,-->
+<!--      false, false, false]</rosparam>-->
+<!--      -->
+<!--    <param name="imu0" value="imu/odom"/>-->
+<!--    <param name="imu0_differential" value="false" />-->
+<!--    <param name="imu0_relative" value="false" />-->
+<!--    <param name="imu0_queue_size" value="10" />-->
+<!--    <param name="imu0_remove_gravitational_acceleration" value="true" />-->
+<!--    <rosparam param="imu0_config">[-->
+<!--      false, false, false, false, false, false,-->
+<!--      false, false, false, false, false, true,-->
+<!--      true, true, true]</rosparam>-->
   </node>
 
 <!--    t265 image rectify and fiducial detection-->
@@ -114,6 +133,9 @@
 
   <!-- Play bag -->
   <node pkg="rosbag" type="play" name="player" output="screen"
-        args="/home/gzy/bags/IMR/backyard/backyard_2020-04-14-14-32-51.bag --clock -s 0 -r 1 --pause /tf:=/tf_null"/>
+        args="
+        /home/gzy/bags/IMR/backyard/backyard_2020-04-14-14-32-51.bag
+        --clock -s 0 -r 1 --pause
+        /tf:=/tf_null"/>
 
 </launch>
