@@ -6,6 +6,9 @@
 #include <tf/transform_broadcaster.h>
 #include <apriltag_ros/AprilTagDetectionArray.h>
 #include <tf_conversions/tf_eigen.h>
+#include <rviz_visual_tools/rviz_visual_tools.h>
+
+namespace rvt = rviz_visual_tools;
 
 class OdomFilter {
  public:
@@ -30,6 +33,11 @@ class OdomFilter {
   }
 
   void init() {
+
+    visual_tools_.reset(new rvt::RvizVisualTools("map", "/rviz_visual_tools"));
+    visual_tools_->loadMarkerPub();  // create publisher before waiting
+    visual_tools_->deleteAllMarkers();
+
     fiducial0_W = Eigen::Translation3d(Eigen::Vector3d{0, 2.44, 0})
         * Eigen::AngleAxisd(M_PI/2, Eigen::Vector3d::UnitZ())
         * Eigen::AngleAxisd(M_PI/2, Eigen::Vector3d::UnitX());
@@ -194,9 +202,25 @@ class OdomFilter {
                                     0., 0., 0., 0., 0., 0.};
 
     uwb_odom.publish(modified_msg);
+
+    Eigen::Isometry3d pose1 = Eigen::Isometry3d::Identity();
+    pose1.translation() = Eigen::Vector3d(msg->x,msg->y,0);
+    visual_tools_->publishSphere(visual_tools_->convertPose(pose1),
+                                 visual_tools_->getColorScale(2),
+                                 visual_tools_->getScale(rvt::scales::XLARGE),
+                                 "Sphere");
+    visual_tools_->trigger();
   }
 
-  void uwb_rpos_callback(const geometry_msgs::Point::ConstPtr& msg) {}
+  void uwb_rpos_callback(const geometry_msgs::Point::ConstPtr& msg) {
+    Eigen::Isometry3d pose1 = Eigen::Isometry3d::Identity();
+    pose1.translation() = Eigen::Vector3d(msg->x,msg->y,0);
+    visual_tools_->publishSphere(visual_tools_->convertPose(pose1),
+        visual_tools_->getColorScale(0),
+        visual_tools_->getScale(rvt::scales::XLARGE),
+        "Sphere");
+    visual_tools_->trigger();
+  }
 
   void uwb_odom_callback(const nav_msgs::Odometry::ConstPtr& msg) {
     if (first_uwb < 5) {
@@ -404,6 +428,8 @@ class OdomFilter {
   Eigen::Vector3d first_ruwb_pos = Eigen::Vector3d::Zero();
   Eigen::Affine3d fiducial0_W;
 //  tf::Transform tf_WF;
+
+  rvt::RvizVisualToolsPtr visual_tools_;
 };
 
 
