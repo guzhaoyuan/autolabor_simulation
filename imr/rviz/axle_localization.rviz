@@ -5,10 +5,11 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
+        - /TF1
         - /TF1/Frames1
         - /UWB Odometry1/Shape1
       Splitter Ratio: 0.6472019553184509
-    Tree Height: 786
+    Tree Height: 457
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -27,7 +28,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: t265 detect
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -97,7 +98,7 @@ Visualization Manager:
         lidar:
           Value: false
         luwb_odom:
-          Value: true
+          Value: false
         map:
           Value: false
         odom:
@@ -135,54 +136,54 @@ Visualization Manager:
         map:
           fiducial0:
             {}
-          odom:
-            base_link:
-              d435_link:
-                d435_accel_frame:
-                  d435_accel_optical_frame:
-                    {}
-                d435_aligned_depth_to_color_frame:
-                  d435_color_optical_frame:
-                    {}
-                d435_aligned_depth_to_infra1_frame:
-                  d435_infra1_optical_frame:
-                    {}
-                d435_color_frame:
+        odom:
+          base_link:
+            d435_link:
+              d435_accel_frame:
+                d435_accel_optical_frame:
                   {}
-                d435_depth_frame:
-                  d435_depth_optical_frame:
-                    {}
-                d435_gyro_frame:
-                  d435_imu_optical_frame:
-                    {}
-                d435_infra1_frame:
+              d435_aligned_depth_to_color_frame:
+                d435_color_optical_frame:
                   {}
-                d435_infra2_frame:
-                  d435_infra2_optical_frame:
-                    {}
-              lidar:
+              d435_aligned_depth_to_infra1_frame:
+                d435_infra1_optical_frame:
+                  {}
+              d435_color_frame:
                 {}
-              t265_pose_frame:
-                t265_link:
-                  t265_accel_frame:
-                    t265_accel_optical_frame:
-                      {}
-                  t265_fisheye1_frame:
-                    t265_fisheye1_optical_frame:
-                      detected_fiducial:
-                        {}
-                  t265_fisheye2_frame:
-                    t265_fisheye2_optical_frame:
-                      {}
-                  t265_gyro_frame:
-                    t265_gyro_optical_frame:
-                      {}
-            luwb_odom:
+              d435_depth_frame:
+                d435_depth_optical_frame:
+                  {}
+              d435_gyro_frame:
+                d435_imu_optical_frame:
+                  {}
+              d435_infra1_frame:
+                {}
+              d435_infra2_frame:
+                d435_infra2_optical_frame:
+                  {}
+            lidar:
               {}
-            ruwb_odom:
-              {}
-            uwb_odom:
-              {}
+            t265_pose_frame:
+              t265_link:
+                t265_accel_frame:
+                  t265_accel_optical_frame:
+                    {}
+                t265_fisheye1_frame:
+                  t265_fisheye1_optical_frame:
+                    detected_fiducial:
+                      {}
+                t265_fisheye2_frame:
+                  t265_fisheye2_optical_frame:
+                    {}
+                t265_gyro_frame:
+                  t265_gyro_optical_frame:
+                    {}
+          luwb_odom:
+            {}
+          ruwb_odom:
+            {}
+          uwb_odom:
+            {}
       Update Interval: 0
       Value: true
     - Alpha: 0.6000000238418579
@@ -227,7 +228,7 @@ Visualization Manager:
           Scale: 1
           Value: true
         Value: false
-      Enabled: false
+      Enabled: true
       Keep: 3
       Name: UWB Odometry
       Position Tolerance: 0.10000000149011612
@@ -243,7 +244,7 @@ Visualization Manager:
         Value: Arrow
       Topic: /dwm/odom
       Unreliable: false
-      Value: false
+      Value: true
     - Angle Tolerance: 0.10000000149011612
       Class: rviz/Odometry
       Covariance:
@@ -261,7 +262,7 @@ Visualization Manager:
           Scale: 1
           Value: true
         Value: false
-      Enabled: false
+      Enabled: true
       Keep: 3
       Name: Visual Odometry
       Position Tolerance: 0.10000000149011612
@@ -277,7 +278,7 @@ Visualization Manager:
         Value: Arrow
       Topic: /t265/odom
       Unreliable: false
-      Value: false
+      Value: true
     - Class: rviz/Axes
       Enabled: false
       Length: 1
@@ -327,7 +328,7 @@ Visualization Manager:
       Class: rviz_imu_plugin/Imu
       Enabled: true
       Name: Imu
-      Topic: /imu/odom
+      Topic: /rtabmap/imu
       Unreliable: false
       Value: true
       fixed_frame_orientation: true
@@ -355,7 +356,7 @@ Visualization Manager:
       Unreliable: false
       Value: false
     - Class: rviz/Image
-      Enabled: false
+      Enabled: true
       Image Topic: /left_tag_detections_image
       Max Value: 1
       Median window: 5
@@ -365,7 +366,7 @@ Visualization Manager:
       Queue Size: 2
       Transport Hint: raw
       Unreliable: false
-      Value: false
+      Value: true
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /rviz_visual_tools
@@ -402,7 +403,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.893155574798584
+      Distance: 2.4243967533111572
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -428,7 +429,7 @@ Window Geometry:
   Height: 1016
   Hide Left Dock: false
   Hide Right Dock: false
-  QMainWindow State: 000000ff00000000fd00000004000000000000019d00000354fc020000000bfb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005e00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000004000000354000000ce00fffffffb000000080064003400330035000000022a0000016a0000001800fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb00000016007400320036003500200064006500740065006300740200000018000002a90000019d00000125fb0000001600740032003600350020006400650074006500630074010000021e000001760000000000000000000000010000010f00000354fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073010000004000000354000000ac00fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000007800000003efc0100000002fb0000000800540069006d00650100000000000007800000025700fffffffb0000000800540069006d00650100000000000004500000000000000000000004c80000035400000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd00000004000000000000019d00000354fc020000000bfb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005e00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c00610079007301000000400000020b000000ce00fffffffb00000016007400320036003500200064006500740065006300740100000251000001430000001800fffffffb000000080064003400330035000000022a0000016a0000001800fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001600740032003600350020006400650074006500630074010000021e000001760000000000000000000000010000010f00000354fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073010000004000000354000000ac00fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000007800000003efc0100000002fb0000000800540069006d00650100000000000007800000025700fffffffb0000000800540069006d00650100000000000004500000000000000000000004c80000035400000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:

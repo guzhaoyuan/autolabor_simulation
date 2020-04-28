@@ -43,7 +43,7 @@
         false, false, false]</rosparam>
 
     <!-- IMU handles the linear acceleration and angular velocity. -->
-    <param name="imu0" value="imu/odom"/>
+    <param name="imu0" value="rtabmap/imu"/>
     <param name="imu0_differential" value="false" />
     <param name="imu0_relative" value="false" />
     <param name="imu0_queue_size" value="10" />
@@ -95,8 +95,8 @@
     <node pkg="tf" type="static_transform_publisher" name="map_to_fiducial"
           args="0.0 2.44 0.5 1.571 0.0 1.571 /map /fiducial0 200" />
     <!--  t265 odom is based on this frame-->
-<!--    <node pkg="tf" type="static_transform_publisher" name="odom_to_t265_odom"-->
-<!--          args="0.2 0.0 0.0 0.0 0.0 0.0 /odom /t265_odom_frame 200" />-->
+    <node pkg="tf" type="static_transform_publisher" name="odom_to_t265_odom"
+          args="0.2 0.0 0.0 0.0 0.0 0.0 /odom /t265_odom_frame 200" />
     <node pkg="tf" type="static_transform_publisher" name="base_link_to_t265"
           args="0.2 0.0 0.0 0.0 0.0 0.0 /base_link /t265_pose_frame 200" />
     <!--  uwb data is based on this frame-->
@@ -115,7 +115,7 @@
   
   <node name="odom_filter" pkg="imr" type="odom_filter" output="screen" >
       <param name="tag_pos_cov" value="1.0" />
-      <param name="vo_pos_cov" value="0.3" />
+      <param name="vo_pos_cov" value="1.0" />
       <param name="vo_vel_cov" value="10" />
       <param name="uwb_pos_cov" value="1.0" />
       <param name="imu_ori_cov" value="0.3" />
