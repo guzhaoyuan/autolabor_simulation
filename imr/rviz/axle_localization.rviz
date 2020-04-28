@@ -93,13 +93,13 @@ Visualization Manager:
         detected_fiducial:
           Value: false
         fiducial0:
-          Value: true
+          Value: false
         lidar:
           Value: false
         luwb_odom:
-          Value: false
-        map:
           Value: true
+        map:
+          Value: false
         odom:
           Value: true
         ruwb_odom:
@@ -128,7 +128,7 @@ Visualization Manager:
           Value: false
       Marker Scale: 1
       Name: TF
-      Show Arrows: true
+      Show Arrows: false
       Show Axes: true
       Show Names: true
       Tree:
@@ -325,11 +325,11 @@ Visualization Manager:
         y_scale: 0.10000000149011612
         z_scale: 0.8999999761581421
       Class: rviz_imu_plugin/Imu
-      Enabled: false
+      Enabled: true
       Name: Imu
       Topic: /imu/odom
       Unreliable: false
-      Value: false
+      Value: true
       fixed_frame_orientation: true
     - Alpha: 1
       Buffer Length: 1
@@ -367,18 +367,18 @@ Visualization Manager:
       Unreliable: false
       Value: false
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /rviz_visual_tools
       Name: MarkerArray
       Namespaces:
-        Sphere: true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 0; 0; 0
     Default Light: true
-    Fixed Frame: map
+    Fixed Frame: odom
     Frame Rate: 30
   Name: root
   Tools:
@@ -402,7 +402,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 7.502228736877441
+      Distance: 2.893155574798584
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -417,10 +417,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.275397777557373
+      Pitch: 0.9697966575622559
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.713581562042236
+      Yaw: 3.123582363128662
     Saved: ~
 Window Geometry:
   Displays:

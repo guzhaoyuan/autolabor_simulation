@@ -66,6 +66,7 @@ class OdomFilter {
   void run() {
     vo_odom = node.advertise<nav_msgs::Odometry>("t265/odom", 10);
     uwb_odom = node.advertise<nav_msgs::Odometry>("dwm/odom", 10);
+    global_uwb_odom = node.advertise<nav_msgs::Odometry>("dwm/global_odom", 10);
     imu_odom = node.advertise<sensor_msgs::Imu>("imu/odom", 10);
     tag_odom = node.advertise<nav_msgs::Odometry>("tag/odom", 10);
 
@@ -159,54 +160,103 @@ class OdomFilter {
     if (first_f) // Do nothing if fiducial not initialized.
       return;
 
+    // Record the initial data report.
     if (first_luwb < 5) {
       first_luwb ++;
       first_luwb_pos = Eigen::Vector3d(msg->x, msg->y, msg->z);
       return;
     }
 
-    nav_msgs::Odometry modified_msg;
-    modified_msg.header.stamp = ros::Time::now();
-    modified_msg.header.frame_id = "luwb_odom";
-    modified_msg.child_frame_id = "base_link";
+    { // Transform UWB in odom frame and send to EKF in local_msg.
+      nav_msgs::Odometry local_msg;
+      local_msg.header.stamp = ros::Time::now();
+      local_msg.header.frame_id = "luwb_odom";
+      local_msg.child_frame_id = "base_link";
 
-    // Try to rotate the UWB sensor reading to align with the map frame.
-    // Assume the first UWB reading is at the odom frame. To make alignment, the initial odom frame angle is guessed.
-    Eigen::Vector3d position_W = Eigen::Vector3d(msg->x, msg->y, msg->z) - first_luwb_pos;
+      // Try to rotate the UWB sensor reading to align with the map frame.
+      // Assume the first UWB reading is at the odom frame. To make alignment, the initial odom frame angle is guessed.
+      Eigen::Vector3d position_W = Eigen::Vector3d(msg->x, msg->y, msg->z) - first_luwb_pos;
 
-    Eigen::Vector3d position_UWB = Eigen::AngleAxisd(init_odom_yaw, Eigen::Vector3d::UnitZ()).toRotationMatrix() *
-        position_W;
+      Eigen::Vector3d position_UWB = Eigen::AngleAxisd(init_odom_yaw, Eigen::Vector3d::UnitZ()).toRotationMatrix() *
+          position_W;
 
-    tf::StampedTransform odom_to_base_link;
-    try {
-      listener.lookupTransform("/odom", "/base_link",
-                               ros::Time(0), odom_to_base_link);
-    } catch (tf::TransformException ex) {
-      odom_to_base_link.setIdentity();
+      tf::StampedTransform odom_to_base_link;
+      try {
+        listener.lookupTransform("/odom", "/base_link",
+                                 ros::Time(0), odom_to_base_link);
+      } catch (tf::TransformException ex) {
+        odom_to_base_link.setIdentity();
+      }
+      tf::Quaternion q = odom_to_base_link.getRotation();
+      Eigen::Quaterniond q_OB(q.w(),q.x(),q.y(),q.z());
+      Eigen::Matrix3d R_OB = q_OB.toRotationMatrix();
+      // Compute the base_link in uwb_odom frame by adding offset from UWB.
+      Eigen::Vector3d position_base = position_UWB + R_OB.transpose() *
+          Eigen::Vector3d(distance_UWB_to_base_X, distance_UWB_to_base_Y, 0);
+      local_msg.pose.pose.position.x = position_base(0);
+      local_msg.pose.pose.position.y = position_base(1);
+      local_msg.pose.pose.position.z = 0;
+
+      local_msg.pose.covariance = {uwb_pos_cov, 0., 0., 0., 0., 0.,
+                                   0., uwb_pos_cov, 0., 0., 0., 0.,
+                                   0., 0., 0., 0., 0., 0.,
+                                   0., 0., 0., 0., 0., 0.,
+                                   0., 0., 0., 0., 0., 0.,
+                                   0., 0., 0., 0., 0., 0.};
+
+      uwb_odom.publish(local_msg);
     }
-    tf::Quaternion q = odom_to_base_link.getRotation();
-    Eigen::Quaterniond q_OB(q.w(),q.x(),q.y(),q.z());
-    Eigen::Matrix3d R_OB = q_OB.toRotationMatrix();
-    // Compute the base_link in uwb_odom frame by adding offset from UWB.
-    Eigen::Vector3d position_base = position_UWB + R_OB.transpose() *
-        Eigen::Vector3d(distance_UWB_to_base_X, distance_UWB_to_base_Y, 0);
-    modified_msg.pose.pose.position.x = position_base(0);
-    modified_msg.pose.pose.position.y = position_base(1);
-    modified_msg.pose.pose.position.z = 0;
 
-    modified_msg.pose.covariance = {uwb_pos_cov, 0., 0., 0., 0., 0.,
-                                    0., uwb_pos_cov, 0., 0., 0., 0.,
-                                    0., 0., 0., 0., 0., 0.,
-                                    0., 0., 0., 0., 0., 0.,
-                                    0., 0., 0., 0., 0., 0.,
-                                    0., 0., 0., 0., 0., 0.};
+    { // Transform UWB in map frame and send to EKF in global_msg.
+      nav_msgs::Odometry global_msg;
+      global_msg.header.stamp = ros::Time::now();
+      global_msg.header.frame_id = "map";
+      global_msg.child_frame_id = "base_link";
 
-    uwb_odom.publish(modified_msg);
+      Eigen::Vector3d position_UWB_W = Eigen::Vector3d(msg->x, msg->y +
+      distance_world_to_beacon_Y, 0);
+
+      tf::StampedTransform map_to_base_link;
+      try {
+        listener.lookupTransform("/map", "/base_link",
+                                 ros::Time(0), map_to_base_link);
+      } catch (tf::TransformException ex) {
+        return;
+      }
+
+      tf::Quaternion q = map_to_base_link.getRotation();
+      Eigen::Quaterniond q_WB(q.w(),q.x(),q.y(),q.z());
+      Eigen::Matrix3d R_WB = q_WB.toRotationMatrix();
+      // Compute the base_link in uwb_odom frame by adding offset from UWB.
+      Eigen::Vector3d position_base_W = position_UWB_W + R_WB.transpose() *
+          Eigen::Vector3d(distance_UWB_to_base_X, distance_UWB_to_base_Y, 0);
+
+      global_msg.pose.pose.position.x = position_base_W(0);
+      global_msg.pose.pose.position.y = position_base_W(1);
+      global_msg.pose.pose.position.z = 0;
+
+      global_msg.pose.covariance = {uwb_pos_cov, 0., 0., 0., 0., 0.,
+                                   0., uwb_pos_cov, 0., 0., 0., 0.,
+                                   0., 0., 0., 0., 0., 0.,
+                                   0., 0., 0., 0., 0., 0.,
+                                   0., 0., 10., 0., 0., 0.,
+                                   0., 0., 0., 0., 0., 0.};
+
+      global_uwb_odom.publish(global_msg);
+
+      Eigen::Isometry3d pose1 = Eigen::Isometry3d::Identity();
+      pose1.translation() = position_base_W;
+      visual_tools_->publishSphere(visual_tools_->convertPose(pose1),
+                                   rvt::colors::BLUE,
+                                   visual_tools_->getScale(rvt::scales::XXLARGE),
+                                   "Sphere");
+      visual_tools_->trigger();
+    }
 
     Eigen::Isometry3d pose1 = Eigen::Isometry3d::Identity();
-    pose1.translation() = Eigen::Vector3d(msg->x,msg->y,0);
+    pose1.translation() = Eigen::Vector3d(msg->x,msg->y+distance_world_to_beacon_Y,0);
     visual_tools_->publishSphere(visual_tools_->convertPose(pose1),
-                                 visual_tools_->getColorScale(2),
+                                 rvt::colors::GREEN,
                                  visual_tools_->getScale(rvt::scales::XLARGE),
                                  "Sphere");
     visual_tools_->trigger();
@@ -214,9 +264,9 @@ class OdomFilter {
 
   void uwb_rpos_callback(const geometry_msgs::Point::ConstPtr& msg) {
     Eigen::Isometry3d pose1 = Eigen::Isometry3d::Identity();
-    pose1.translation() = Eigen::Vector3d(msg->x,msg->y,0);
+    pose1.translation() = Eigen::Vector3d(msg->x,msg->y+distance_world_to_beacon_Y,0);
     visual_tools_->publishSphere(visual_tools_->convertPose(pose1),
-        visual_tools_->getColorScale(0),
+        rvt::colors::RED,
         visual_tools_->getScale(rvt::scales::XLARGE),
         "Sphere");
     visual_tools_->trigger();
@@ -294,7 +344,7 @@ class OdomFilter {
 
     Eigen::Quaterniond q_now(msg->orientation.w, msg->orientation.x, msg->orientation.y, msg->orientation.z);
 //  Eigen::Quaterniond q_diff = q_first.inverse() * q_now;
-    Eigen::Quaterniond q_diff = Eigen::Quaterniond(Eigen::AngleAxisd(init_imu_yaw, Eigen::Vector3d::UnitZ())) * q_now;
+    Eigen::Quaterniond q_diff = Eigen::Quaterniond(Eigen::AngleAxisd(imu_init_val, Eigen::Vector3d::UnitZ())) * q_now;
     modified_msg.orientation.w = q_diff.w();
     modified_msg.orientation.x = q_diff.x();
     modified_msg.orientation.y = q_diff.y();
@@ -389,6 +439,7 @@ class OdomFilter {
 
   ros::Publisher vo_odom;
   ros::Publisher uwb_odom;
+  ros::Publisher global_uwb_odom;
   ros::Publisher imu_odom;
   ros::Publisher tag_odom;
   ros::Subscriber vo_odom_listener;
@@ -421,6 +472,7 @@ class OdomFilter {
   double distance_UWB_to_base_X = -0.02;
   double distance_UWB_to_base_Y = 0.28;
   double distance_camera_to_base = -0.20;
+  const double distance_world_to_beacon_Y = 2.44;
 
   Eigen::Matrix4d first_cam_odom = Eigen::Matrix4d::Identity();
   Eigen::Vector3d first_uwb_pos = Eigen::Vector3d::Zero();
