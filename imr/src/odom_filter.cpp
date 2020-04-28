@@ -420,8 +420,10 @@ class OdomFilter {
     }
 
     tf::Transform tf_BF = tf_BC * tf_CF;
+    tf::Transform tf_WB = tf_WF * tf_BF.inverse();
+    tf_broadcaster_.sendTransform(tf::StampedTransform(tf_WB,
+        ros::Time::now(), "map", "detected_base"));
     if (first_f) {
-      tf::Transform tf_WB = tf_WF * tf_BF.inverse();
       tf_broadcaster_.sendTransform(tf::StampedTransform(tf_WB,
           ros::Time::now(), "map", "odom"));
       double roll, pitch, yaw;
@@ -436,10 +438,8 @@ class OdomFilter {
       tf::StampedTransform tf_OB;
       listener.lookupTransform("/odom", "/base_link",
                                ros::Time(0), tf_OB);
-      tf::Transform tf_WB = tf_WF * tf_BF.inverse();
+
       tf::Transform tf_WO = tf_WB * tf_OB.inverse();
-//      tf_broadcaster_.sendTransform(tf::StampedTransform(tf_WO,
-//        ros::Time::now(), "map", "odom"));
 
       nav_msgs::Odometry tag_msg;
       tag_msg.header.stamp = ros::Time::now();

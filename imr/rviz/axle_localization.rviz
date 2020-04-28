@@ -91,8 +91,10 @@ Visualization Manager:
           Value: false
         d435_link:
           Value: false
-        detected_fiducial:
+        detected_base:
           Value: true
+        detected_fiducial:
+          Value: false
         fiducial0:
           Value: true
         lidar:
@@ -136,6 +138,8 @@ Visualization Manager:
       Show Names: true
       Tree:
         map:
+          detected_base:
+            {}
           fiducial0:
             {}
           odom:
@@ -422,10 +426,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5147973299026489
+      Pitch: 0.29479750990867615
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.678586483001709
+      Yaw: 4.623584270477295
     Saved: ~
 Window Geometry:
   Displays:

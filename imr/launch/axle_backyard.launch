@@ -87,7 +87,7 @@
     <include file="$(find imr_perception)/launch/imr_t265_detect.launch"/>
 
     <node pkg="tf" type="static_transform_publisher" name="map_to_fiducial"
-          args="0.0 2.44 0.5 1.571 0.0 1.571 /map /fiducial0 200" />
+          args="0.0 2.44 0.41 1.571 0.0 1.571 /map /fiducial0 200" />
     <!--  t265 odom is based on this frame-->
     <node pkg="tf" type="static_transform_publisher" name="odom_to_t265_odom"
           args="0.2 0.0 0.0 0.0 0.0 0.0 /odom /t265_odom_frame 200" />
@@ -108,7 +108,7 @@
         args="-d $(find imr)/rviz/axle_localization.rviz" />
   
   <node name="odom_filter" pkg="imr" type="odom_filter" output="screen" >
-      <param name="tag_pos_cov" value="1.0" />
+      <param name="tag_pos_cov" value="10.0" />
       <param name="vo_pos_cov" value="1.0" />
       <param name="vo_vel_cov" value="10" />
       <param name="uwb_pos_cov" value="1.0" />
@@ -126,7 +126,7 @@
   </node>
 
   <!-- Play bag -->
-  <node pkg="rosbag" type="play" name="player" output="screen"
+  <node pkg="rosbag" type="play" name="player" output="log"
         args="
         /home/gzy/bags/IMR/backyard/backyard_2020-04-27-15-21-03.bag
         --clock -s 0 -r 1 --pause
