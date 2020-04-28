@@ -68,6 +68,7 @@ class OdomFilter {
     uwb_odom = node.advertise<nav_msgs::Odometry>("dwm/odom", 10);
     global_uwb_odom = node.advertise<nav_msgs::Odometry>("dwm/global_odom", 10);
     imu_odom = node.advertise<sensor_msgs::Imu>("imu/odom", 10);
+    global_imu_odom = node.advertise<sensor_msgs::Imu>("imu/global_odom", 10);
     tag_odom = node.advertise<nav_msgs::Odometry>("tag/odom", 10);
 
     vo_odom_listener = node.subscribe("t265/odom/sample",
@@ -334,33 +335,63 @@ class OdomFilter {
     if (first_imu < 5) {
       // Remember initial yaw angle and compensate later.
       imu_init_val = GetEulerZ(msg);
+      ROS_INFO("imu_init_val: %.1f.", imu_init_val);
       q_first = Eigen::Quaterniond(msg->orientation.w, msg->orientation.x, msg->orientation.y, msg->orientation.z);
       first_imu ++;
       return;
     }
-    sensor_msgs::Imu modified_msg = *msg;
-    modified_msg.header.stamp = ros::Time::now();
-    modified_msg.header.frame_id = "d435_imu_optical_frame";
 
-    Eigen::Quaterniond q_now(msg->orientation.w, msg->orientation.x, msg->orientation.y, msg->orientation.z);
+    { // Local imu data: represent base_link orientation on odom frame.
+      sensor_msgs::Imu modified_msg = *msg;
+      modified_msg.header.stamp = ros::Time::now();
+      modified_msg.header.frame_id = "d435_imu_optical_frame";
+
+      Eigen::Quaterniond q_now(msg->orientation.w, msg->orientation.x, msg->orientation.y, msg->orientation.z);
 //  Eigen::Quaterniond q_diff = q_first.inverse() * q_now;
-    Eigen::Quaterniond q_diff = Eigen::Quaterniond(Eigen::AngleAxisd(imu_init_val, Eigen::Vector3d::UnitZ())) * q_now;
-    modified_msg.orientation.w = q_diff.w();
-    modified_msg.orientation.x = q_diff.x();
-    modified_msg.orientation.y = q_diff.y();
-    modified_msg.orientation.z = q_diff.z();
+      Eigen::Quaterniond q_diff = Eigen::Quaterniond(Eigen::AngleAxisd(imu_init_val, Eigen::Vector3d::UnitZ())) * q_now;
+      modified_msg.orientation.w = q_diff.w();
+      modified_msg.orientation.x = q_diff.x();
+      modified_msg.orientation.y = q_diff.y();
+      modified_msg.orientation.z = q_diff.z();
 
-    modified_msg.orientation_covariance = {imu_ori_cov, 0., 0.,
-                                           0., imu_ori_cov, 0.,
-                                           0., 0., imu_ori_cov};
-    modified_msg.angular_velocity_covariance = {imu_ori_cov, 0., 0.,
-                                                0., imu_ori_cov, 0.,
-                                                0., 0., imu_ori_cov};
-    modified_msg.linear_acceleration_covariance = {imu_ori_cov, 0., 0.,
-                                                   0., imu_ori_cov, 0.,
-                                                   0., 0., imu_ori_cov};
+      modified_msg.orientation_covariance = {imu_ori_cov, 0., 0.,
+                                             0., imu_ori_cov, 0.,
+                                             0., 0., imu_ori_cov};
+      modified_msg.angular_velocity_covariance = {imu_ori_cov, 0., 0.,
+                                                  0., imu_ori_cov, 0.,
+                                                  0., 0., imu_ori_cov};
+      modified_msg.linear_acceleration_covariance = {imu_ori_cov, 0., 0.,
+                                                     0., imu_ori_cov, 0.,
+                                                     0., 0., imu_ori_cov};
+      imu_odom.publish(modified_msg);
+    }
 
-    imu_odom.publish(modified_msg);
+    { // Global imu data: represent base_link orientation on map frame.
+      sensor_msgs::Imu global_imu_msg = *msg;
+      global_imu_msg.header.stamp = ros::Time::now();
+      global_imu_msg.header.frame_id = "d435_imu_optical_frame";
+
+      Eigen::Quaterniond q_now(msg->orientation.w, msg->orientation.x, msg->orientation.y, msg->orientation.z);
+      Eigen::Quaterniond q_diff = Eigen::Quaterniond(
+          Eigen::AngleAxisd(imu_init_val, Eigen::Vector3d::UnitZ())) * q_now;
+      Eigen::Quaterniond q_base_W = Eigen::Quaterniond(
+          Eigen::AngleAxisd(init_odom_yaw, Eigen::Vector3d::UnitZ())) * q_diff;
+      global_imu_msg.orientation.w = q_base_W.w();
+      global_imu_msg.orientation.x = q_base_W.x();
+      global_imu_msg.orientation.y = q_base_W.y();
+      global_imu_msg.orientation.z = q_base_W.z();
+
+      global_imu_msg.orientation_covariance = {imu_ori_cov, 0., 0.,
+                                             0., imu_ori_cov, 0.,
+                                             0., 0., imu_ori_cov};
+      global_imu_msg.angular_velocity_covariance = {imu_ori_cov, 0., 0.,
+                                                  0., imu_ori_cov, 0.,
+                                                  0., 0., imu_ori_cov};
+      global_imu_msg.linear_acceleration_covariance = {imu_ori_cov, 0., 0.,
+                                                     0., imu_ori_cov, 0.,
+                                                     0., 0., imu_ori_cov};
+      global_imu_odom.publish(global_imu_msg);
+    }
   }
 
   void fiducial_CB(const apriltag_ros::AprilTagDetectionArray::ConstPtr& tag_array) {
@@ -441,6 +472,7 @@ class OdomFilter {
   ros::Publisher uwb_odom;
   ros::Publisher global_uwb_odom;
   ros::Publisher imu_odom;
+  ros::Publisher global_imu_odom;
   ros::Publisher tag_odom;
   ros::Subscriber vo_odom_listener;
   ros::Subscriber uwb_odom_listener;

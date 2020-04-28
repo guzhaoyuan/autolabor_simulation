@@ -92,15 +92,15 @@ Visualization Manager:
         d435_link:
           Value: false
         detected_fiducial:
-          Value: false
+          Value: true
         fiducial0:
-          Value: false
+          Value: true
         lidar:
           Value: false
         luwb_odom:
           Value: false
         map:
-          Value: false
+          Value: true
         odom:
           Value: true
         ruwb_odom:
@@ -123,6 +123,8 @@ Visualization Manager:
           Value: false
         t265_link:
           Value: false
+        t265_odom_frame:
+          Value: false
         t265_pose_frame:
           Value: false
         uwb_odom:
@@ -136,54 +138,56 @@ Visualization Manager:
         map:
           fiducial0:
             {}
-        odom:
-          base_link:
-            d435_link:
-              d435_accel_frame:
-                d435_accel_optical_frame:
-                  {}
-              d435_aligned_depth_to_color_frame:
-                d435_color_optical_frame:
-                  {}
-              d435_aligned_depth_to_infra1_frame:
-                d435_infra1_optical_frame:
-                  {}
-              d435_color_frame:
-                {}
-              d435_depth_frame:
-                d435_depth_optical_frame:
-                  {}
-              d435_gyro_frame:
-                d435_imu_optical_frame:
-                  {}
-              d435_infra1_frame:
-                {}
-              d435_infra2_frame:
-                d435_infra2_optical_frame:
-                  {}
-            lidar:
-              {}
-            t265_pose_frame:
-              t265_link:
-                t265_accel_frame:
-                  t265_accel_optical_frame:
+          odom:
+            base_link:
+              d435_link:
+                d435_accel_frame:
+                  d435_accel_optical_frame:
                     {}
-                t265_fisheye1_frame:
-                  t265_fisheye1_optical_frame:
-                    detected_fiducial:
+                d435_aligned_depth_to_color_frame:
+                  d435_color_optical_frame:
+                    {}
+                d435_aligned_depth_to_infra1_frame:
+                  d435_infra1_optical_frame:
+                    {}
+                d435_color_frame:
+                  {}
+                d435_depth_frame:
+                  d435_depth_optical_frame:
+                    {}
+                d435_gyro_frame:
+                  d435_imu_optical_frame:
+                    {}
+                d435_infra1_frame:
+                  {}
+                d435_infra2_frame:
+                  d435_infra2_optical_frame:
+                    {}
+              lidar:
+                {}
+              t265_pose_frame:
+                t265_link:
+                  t265_accel_frame:
+                    t265_accel_optical_frame:
                       {}
-                t265_fisheye2_frame:
-                  t265_fisheye2_optical_frame:
-                    {}
-                t265_gyro_frame:
-                  t265_gyro_optical_frame:
-                    {}
-          luwb_odom:
-            {}
-          ruwb_odom:
-            {}
-          uwb_odom:
-            {}
+                  t265_fisheye1_frame:
+                    t265_fisheye1_optical_frame:
+                      detected_fiducial:
+                        {}
+                  t265_fisheye2_frame:
+                    t265_fisheye2_optical_frame:
+                      {}
+                  t265_gyro_frame:
+                    t265_gyro_optical_frame:
+                      {}
+            luwb_odom:
+              {}
+            ruwb_odom:
+              {}
+            t265_odom_frame:
+              {}
+            uwb_odom:
+              {}
       Update Interval: 0
       Value: true
     - Alpha: 0.6000000238418579
@@ -379,7 +383,7 @@ Visualization Manager:
   Global Options:
     Background Color: 0; 0; 0
     Default Light: true
-    Fixed Frame: odom
+    Fixed Frame: map
     Frame Rate: 30
   Name: root
   Tools:
@@ -403,25 +407,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.4243967533111572
+      Distance: 4.7678022384643555
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0
-        Y: 0
-        Z: 0
+        X: 1.68993079662323
+        Y: 1.2384649515151978
+        Z: 0.01988581009209156
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.9697966575622559
+      Pitch: 0.5147973299026489
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.123582363128662
+      Yaw: 4.678586483001709
     Saved: ~
 Window Geometry:
   Displays:
