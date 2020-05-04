@@ -22,7 +22,7 @@ class PathVisualization {
 
     tf::StampedTransform odom_to_base_link;
     try {
-      tf_listener_.lookupTransform("/odom", "/base_link",
+      tf_listener_.lookupTransform("/map", "/base_link",
                                ros::Time(0), odom_to_base_link);
     } catch (tf::TransformException ex) {
       ROS_WARN(ex.what());

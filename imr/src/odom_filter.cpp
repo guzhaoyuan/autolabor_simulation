@@ -7,6 +7,8 @@
 #include <apriltag_ros/AprilTagDetectionArray.h>
 #include <tf_conversions/tf_eigen.h>
 #include <rviz_visual_tools/rviz_visual_tools.h>
+#include <message_filters/subscriber.h>
+#include <message_filters/time_synchronizer.h>
 
 namespace rvt = rviz_visual_tools;
 
@@ -81,6 +83,9 @@ class OdomFilter {
     imu_listener = node.subscribe("rtabmap/imu", 100, &OdomFilter::imu_odom_callback, this);
     fiducial_listener = node.subscribe("tag_detections", 100,
         &OdomFilter::fiducial_CB, this);
+
+    pub_pos_timer_ = node.createTimer(ros::Duration(1.0/20),
+        &OdomFilter::uwb_callback, this);
   }
 
   void vo_odom_callback(const nav_msgs::Odometry::ConstPtr& msg) {
@@ -158,6 +163,7 @@ class OdomFilter {
   }
 
   void uwb_lpos_callback(const geometry_msgs::Point::ConstPtr& msg) {
+    luwb_pos_O = Eigen::Vector3d(msg->x, msg->y, msg->z);
     if (first_f) // Do nothing if fiducial not initialized.
       return;
 
@@ -208,69 +214,113 @@ class OdomFilter {
       uwb_odom.publish(local_msg);
     }
 
+//    { // Transform UWB in map frame and send to EKF in global_msg.
+//      nav_msgs::Odometry global_msg;
+//      global_msg.header.stamp = ros::Time::now();
+//      global_msg.header.frame_id = "map";
+//      global_msg.child_frame_id = "base_link";
+//
+//      Eigen::Vector3d position_UWB_W = Eigen::Vector3d(msg->x, msg->y +
+//      distance_world_to_beacon_Y, 0);
+//
+//      tf::StampedTransform map_to_base_link;
+//      try {
+//        listener.lookupTransform("/map", "/base_link",
+//                                 ros::Time(0), map_to_base_link);
+//      } catch (tf::TransformException ex) {
+//        return;
+//      }
+//
+//      tf::Quaternion q = map_to_base_link.getRotation();
+//      Eigen::Quaterniond q_WB(q.w(),q.x(),q.y(),q.z());
+//      Eigen::Matrix3d R_WB = q_WB.toRotationMatrix();
+//      // Compute the base_link in uwb_odom frame by adding offset from UWB.
+//      Eigen::Vector3d position_base_W = position_UWB_W + R_WB.transpose() *
+//          Eigen::Vector3d(distance_UWB_to_base_X, distance_UWB_to_base_Y, 0);
+//
+//      global_msg.pose.pose.position.x = position_base_W(0);
+//      global_msg.pose.pose.position.y = position_base_W(1);
+//      global_msg.pose.pose.position.z = 0;
+//
+//      global_msg.pose.covariance = {uwb_pos_cov, 0., 0., 0., 0., 0.,
+//                                   0., uwb_pos_cov, 0., 0., 0., 0.,
+//                                   0., 0., 0., 0., 0., 0.,
+//                                   0., 0., 0., 0., 0., 0.,
+//                                   0., 0., 10., 0., 0., 0.,
+//                                   0., 0., 0., 0., 0., 0.};
+//
+//      global_uwb_odom.publish(global_msg);
+//
+//      Eigen::Isometry3d pose1 = Eigen::Isometry3d::Identity();
+//      pose1.translation() = position_base_W;
+//      visual_tools_->publishSphere(visual_tools_->convertPose(pose1),
+//                                   rvt::colors::BLUE,
+//                                   visual_tools_->getScale(rvt::scales::XXLARGE),
+//                                   "Sphere");
+//      visual_tools_->trigger();
+//    }
+  }
+
+  void uwb_rpos_callback(const geometry_msgs::Point::ConstPtr& msg) {
+    ruwb_pos_O = Eigen::Vector3d(msg->x, msg->y, msg->z);
+  }
+
+  void uwb_callback(const ros::TimerEvent &event) {
     { // Transform UWB in map frame and send to EKF in global_msg.
       nav_msgs::Odometry global_msg;
       global_msg.header.stamp = ros::Time::now();
       global_msg.header.frame_id = "map";
       global_msg.child_frame_id = "base_link";
 
-      Eigen::Vector3d position_UWB_W = Eigen::Vector3d(msg->x, msg->y +
-      distance_world_to_beacon_Y, 0);
+      Eigen::Vector3d pos_l_W = Eigen::Vector3d(luwb_pos_O(0), luwb_pos_O(1) +
+          distance_world_to_beacon_Y, 0);
+      Eigen::Vector3d pos_r_W = Eigen::Vector3d(ruwb_pos_O(0), ruwb_pos_O(1) +
+          distance_world_to_beacon_Y, 0);
+      Eigen::Vector3d pos_base_W = (pos_l_W + pos_r_W)/2;
+      Eigen::Vector3d l_to_r_W = (pos_r_W - pos_l_W)/2;
 
-      tf::StampedTransform map_to_base_link;
-      try {
-        listener.lookupTransform("/map", "/base_link",
-                                 ros::Time(0), map_to_base_link);
-      } catch (tf::TransformException ex) {
-        return;
-      }
-
-      tf::Quaternion q = map_to_base_link.getRotation();
-      Eigen::Quaterniond q_WB(q.w(),q.x(),q.y(),q.z());
-      Eigen::Matrix3d R_WB = q_WB.toRotationMatrix();
-      // Compute the base_link in uwb_odom frame by adding offset from UWB.
-      Eigen::Vector3d position_base_W = position_UWB_W + R_WB.transpose() *
-          Eigen::Vector3d(distance_UWB_to_base_X, distance_UWB_to_base_Y, 0);
-
-      global_msg.pose.pose.position.x = position_base_W(0);
-      global_msg.pose.pose.position.y = position_base_W(1);
+      global_msg.pose.pose.position.x = pos_base_W(0);
+      global_msg.pose.pose.position.y = pos_base_W(1);
       global_msg.pose.pose.position.z = 0;
 
+      double theta_l_to_r = std::atan2(l_to_r_W(1), l_to_r_W(0));
+      Eigen::Quaterniond q_heading_W(
+        Eigen::AngleAxisd(theta_l_to_r, Eigen::Vector3d::UnitZ()) *
+        Eigen::AngleAxisd(M_PI/2, Eigen::Vector3d::UnitZ()));
+
+      global_msg.pose.pose.orientation.w = q_heading_W.w();
+      global_msg.pose.pose.orientation.x = q_heading_W.x();
+      global_msg.pose.pose.orientation.y = q_heading_W.y();
+      global_msg.pose.pose.orientation.z = q_heading_W.z();
+
       global_msg.pose.covariance = {uwb_pos_cov, 0., 0., 0., 0., 0.,
-                                   0., uwb_pos_cov, 0., 0., 0., 0.,
-                                   0., 0., 0., 0., 0., 0.,
-                                   0., 0., 0., 0., 0., 0.,
-                                   0., 0., 10., 0., 0., 0.,
-                                   0., 0., 0., 0., 0., 0.};
+                                    0., uwb_pos_cov, 0., 0., 0., 0.,
+                                    0., 0., 0., 0., 0., 0.,
+                                    0., 0., 0., 0., 0., 0.,
+                                    0., 0., 10., 0., 0., 0.,
+                                    0., 0., 0., 0., 0., uwb_pos_cov};
 
       global_uwb_odom.publish(global_msg);
 
-      Eigen::Isometry3d pose1 = Eigen::Isometry3d::Identity();
-      pose1.translation() = position_base_W;
-      visual_tools_->publishSphere(visual_tools_->convertPose(pose1),
-                                   rvt::colors::BLUE,
+      // Visualize the position.
+      Eigen::Isometry3d pose = Eigen::Isometry3d::Identity();
+      pose.translation() = pos_l_W;
+      visual_tools_->publishSphere(visual_tools_->convertPose(pose),
+                                   rvt::colors::RED,
+                                   visual_tools_->getScale(rvt::scales::XXLARGE),
+                                   "Sphere");
+      pose.translation() = pos_base_W;
+      visual_tools_->publishSphere(visual_tools_->convertPose(pose),
+                                   rvt::colors::ORANGE,
+                                   visual_tools_->getScale(rvt::scales::XXLARGE),
+                                   "Sphere");
+      pose.translation() = pos_r_W;
+      visual_tools_->publishSphere(visual_tools_->convertPose(pose),
+                                   rvt::colors::YELLOW,
                                    visual_tools_->getScale(rvt::scales::XXLARGE),
                                    "Sphere");
       visual_tools_->trigger();
     }
-
-    Eigen::Isometry3d pose1 = Eigen::Isometry3d::Identity();
-    pose1.translation() = Eigen::Vector3d(msg->x,msg->y+distance_world_to_beacon_Y,0);
-    visual_tools_->publishSphere(visual_tools_->convertPose(pose1),
-                                 rvt::colors::GREEN,
-                                 visual_tools_->getScale(rvt::scales::XLARGE),
-                                 "Sphere");
-    visual_tools_->trigger();
-  }
-
-  void uwb_rpos_callback(const geometry_msgs::Point::ConstPtr& msg) {
-    Eigen::Isometry3d pose1 = Eigen::Isometry3d::Identity();
-    pose1.translation() = Eigen::Vector3d(msg->x,msg->y+distance_world_to_beacon_Y,0);
-    visual_tools_->publishSphere(visual_tools_->convertPose(pose1),
-        rvt::colors::RED,
-        visual_tools_->getScale(rvt::scales::XLARGE),
-        "Sphere");
-    visual_tools_->trigger();
   }
 
   void uwb_odom_callback(const nav_msgs::Odometry::ConstPtr& msg) {
@@ -332,23 +382,28 @@ class OdomFilter {
 
   void imu_odom_callback(const sensor_msgs::Imu::ConstPtr& msg) {
     // Throw away first several imu data.
-    if (first_imu < 5) {
+    if (first_imu < 20) {
       // Remember initial yaw angle and compensate later.
       imu_init_val = GetEulerZ(msg);
-      ROS_INFO("imu_init_val: %.1f.", imu_init_val);
+      ROS_INFO("imu_init_val: %.2f.", imu_init_val);
       q_first = Eigen::Quaterniond(msg->orientation.w, msg->orientation.x, msg->orientation.y, msg->orientation.z);
       first_imu ++;
       return;
     }
+    // This IMU data represents the /d435_imu_optical_frame in the
+    // North-East-Down frame. init_imu_yaw represents the NED to /map rotation.
 
     { // Local imu data: represent base_link orientation on odom frame.
       sensor_msgs::Imu modified_msg = *msg;
       modified_msg.header.stamp = ros::Time::now();
+      // Meaning the frame that imu data represents. The parent frame is NED.
       modified_msg.header.frame_id = "d435_imu_optical_frame";
 
       Eigen::Quaterniond q_now(msg->orientation.w, msg->orientation.x, msg->orientation.y, msg->orientation.z);
 //  Eigen::Quaterniond q_diff = q_first.inverse() * q_now;
-      Eigen::Quaterniond q_diff = Eigen::Quaterniond(Eigen::AngleAxisd(imu_init_val, Eigen::Vector3d::UnitZ())) * q_now;
+      Eigen::Quaterniond q_diff = Eigen::Quaterniond(
+          Eigen::AngleAxisd(-imu_init_val+init_imu_yaw, Eigen::Vector3d::UnitZ())) *
+              q_now;
       modified_msg.orientation.w = q_diff.w();
       modified_msg.orientation.x = q_diff.x();
       modified_msg.orientation.y = q_diff.y();
@@ -369,7 +424,7 @@ class OdomFilter {
     { // Global imu data: represent base_link orientation on map frame.
       sensor_msgs::Imu global_imu_msg = *msg;
       global_imu_msg.header.stamp = ros::Time::now();
-      global_imu_msg.header.frame_id = "d435_imu_optical_frame";
+      global_imu_msg.header.frame_id = "base_link";
 
       Eigen::Quaterniond q_now(msg->orientation.w, msg->orientation.x, msg->orientation.y, msg->orientation.z);
       Eigen::Quaterniond q_diff = Eigen::Quaterniond(
@@ -434,36 +489,39 @@ class OdomFilter {
       return;
     }
 
-    try {
-      tf::StampedTransform tf_OB;
-      listener.lookupTransform("/odom", "/base_link",
-                               ros::Time(0), tf_OB);
-
-      tf::Transform tf_WO = tf_WB * tf_OB.inverse();
-
-      nav_msgs::Odometry tag_msg;
-      tag_msg.header.stamp = ros::Time::now();
-      tag_msg.header.frame_id = "map";
-      tag_msg.child_frame_id = "base_link";
-      tag_msg.pose.pose.position.x = tf_WB.getOrigin().getX();
-      tag_msg.pose.pose.position.y = tf_WB.getOrigin().getY();
-      tag_msg.pose.pose.position.z = 0;
-      tf::Quaternion q_WB = tf_WB.getRotation();
-      tag_msg.pose.pose.orientation.x = q_WB.x();
-      tag_msg.pose.pose.orientation.y = q_WB.y();
-      tag_msg.pose.pose.orientation.z = q_WB.z();
-      tag_msg.pose.pose.orientation.w = q_WB.w();
-      tag_msg.pose.covariance = {tag_pos_cov, 0., 0., 0., 0., 0.,
-                                      0., tag_pos_cov, 0., 0., 0., 0.,
-                                      0., 0., 0., 0., 0., 0.,
-                                      0., 0., 0., 0., 0., 0.,
-                                      0., 0., 0., 0., 0., 0.,
-                                      0., 0., 0., 0., 0., 0.};
-
-      tag_odom.publish(tag_msg);
-    } catch (tf::TransformException ex) {
-      return;
-    }
+//    double distance = tf_CF.getOrigin().length();
+//    if (distance > 3 || distance < 2)
+//      return;
+//    try {
+//      tf::StampedTransform tf_OB;
+//      listener.lookupTransform("/odom", "/base_link",
+//                               ros::Time(0), tf_OB);
+//
+//      tf::Transform tf_WO = tf_WB * tf_OB.inverse();
+//
+//      nav_msgs::Odometry tag_msg;
+//      tag_msg.header.stamp = ros::Time::now();
+//      tag_msg.header.frame_id = "map";
+//      tag_msg.child_frame_id = "base_link";
+//      tag_msg.pose.pose.position.x = tf_WB.getOrigin().getX();
+//      tag_msg.pose.pose.position.y = tf_WB.getOrigin().getY();
+//      tag_msg.pose.pose.position.z = 0;
+//      tf::Quaternion q_WB = tf_WB.getRotation();
+//      tag_msg.pose.pose.orientation.x = q_WB.x();
+//      tag_msg.pose.pose.orientation.y = q_WB.y();
+//      tag_msg.pose.pose.orientation.z = q_WB.z();
+//      tag_msg.pose.pose.orientation.w = q_WB.w();
+//      tag_msg.pose.covariance = {tag_pos_cov, 0., 0., 0., 0., 0.,
+//                                      0., tag_pos_cov, 0., 0., 0., 0.,
+//                                      0., 0., 0., 0., 0., 0.,
+//                                      0., 0., 0., 0., 0., 0.,
+//                                      0., 0., 0., 0., 0., 0.,
+//                                      0., 0., 0., 0., 0., 0.};
+//
+//      tag_odom.publish(tag_msg);
+//    } catch (tf::TransformException ex) {
+//      return;
+//    }
   }
 
   ros::NodeHandle node;
@@ -480,6 +538,7 @@ class OdomFilter {
   ros::Subscriber ruwb_pos_listener;
   ros::Subscriber imu_listener;
   ros::Subscriber fiducial_listener;
+  ros::Timer pub_pos_timer_;
 
   tf::TransformListener listener;
   tf::TransformBroadcaster tf_broadcaster_;
@@ -511,7 +570,8 @@ class OdomFilter {
   Eigen::Vector3d first_luwb_pos = Eigen::Vector3d::Zero();
   Eigen::Vector3d first_ruwb_pos = Eigen::Vector3d::Zero();
   Eigen::Affine3d fiducial0_W;
-//  tf::Transform tf_WF;
+  Eigen::Vector3d luwb_pos_O;
+  Eigen::Vector3d ruwb_pos_O;
 
   rvt::RvizVisualToolsPtr visual_tools_;
 };

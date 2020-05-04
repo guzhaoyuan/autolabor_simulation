@@ -37,7 +37,7 @@
         false, false, false]</rosparam>
 
     <!-- IMU handles the linear acceleration and angular velocity. -->
-    <param name="imu0" value="rtabmap/imu"/>
+    <param name="imu0" value="imu/odom"/>
     <param name="imu0_differential" value="false" />
     <param name="imu0_relative" value="false" />
     <param name="imu0_queue_size" value="10" />
@@ -50,7 +50,7 @@
 
   <!-- robot_localization EKF node for the map frame -->
   <node pkg="robot_localization" type="ekf_localization_node" name="robot_localization_ekf_node_map"  clear_params="true">
-    <param name="frequency" value="100" />
+    <param name="frequency" value="20" />
     <param name="transform_time_offset" value="0.05" />
     <param name="sensor_timeout" value="0.2" />
     <param name="two_d_mode" value="true" />
@@ -63,18 +63,18 @@
 
     <param name="odom0" value="dwm/global_odom" />
     <rosparam param="odom0_config">[
-      true, true, false, false, false, false,
+      true, true, false, false, false, true,
       false, false, false, false, false, false,
       false, false, false]</rosparam>
 
-    <param name="odom1" value="tag/odom" />
-    <rosparam param="odom1_config">[true, true, false, false, false, true,
-                                    false, false, false, false, false, false,
-                                    false, false, false]</rosparam>
+<!--    <param name="odom1" value="tag/odom" />-->
+<!--    <rosparam param="odom1_config">[true, true, false, false, false, true,-->
+<!--                                    false, false, false, false, false, false,-->
+<!--                                    false, false, false]</rosparam>-->
 
 <!--    <param name="imu0" value="imu/global_odom"/>-->
 <!--    <param name="imu0_differential" value="false" />-->
-<!--    <param name="imu0_relative" value="false" />-->
+<!--    <param name="imu0_relative" value="true" />-->
 <!--    <param name="imu0_queue_size" value="10" />-->
 <!--    <param name="imu0_remove_gravitational_acceleration" value="true" />-->
 <!--    <rosparam param="imu0_config">[-->
@@ -109,12 +109,12 @@
   
   <node name="odom_filter" pkg="imr" type="odom_filter" output="screen" >
       <param name="tag_pos_cov" value="10.0" />
-      <param name="vo_pos_cov" value="1.0" />
-      <param name="vo_vel_cov" value="10" />
+      <param name="vo_pos_cov" value="2.0" />
+      <param name="vo_vel_cov" value="20.0" />
       <param name="uwb_pos_cov" value="1.0" />
       <param name="imu_ori_cov" value="0.3" />
       <param name="init_odom_yaw" value="3.14" />
-<!--      <param name="init_imu_yaw" value="0.3" />-->
+      <param name="init_imu_yaw" value="1.57" />
       <param name="distance_UWB_to_base_X" value="-0.02" />
       <param name="distance_UWB_to_base_Y" value="-0.30" />
       <param name="distance_UWB_to_base" value="0.308" />
@@ -122,13 +122,13 @@
   </node>
 
   <node name="path_viz" pkg="imr" type="viz_path" >
-      <param name="rate" value="2"/>
+      <param name="rate" value="20"/>
   </node>
 
   <!-- Play bag -->
   <node pkg="rosbag" type="play" name="player" output="log"
         args="
-        /home/gzy/bags/IMR/backyard/backyard_2020-04-27-15-21-03.bag
+        /home/gzy/bags/IMR/backyard/backyard_2020-04-27-15-19-08.bag
         --clock -s 0 -r 1 --pause
         /tf:=/tf_null"/>
 
