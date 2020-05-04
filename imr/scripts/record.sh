@@ -1,0 +1,1 @@
+rosbag record /tf /tf_static /t265/odom/sample /d400/aligned_depth_to_color/image_raw /d400/color/image_raw /d400/color/camera_info
