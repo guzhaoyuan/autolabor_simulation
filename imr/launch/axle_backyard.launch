@@ -4,10 +4,10 @@
   <param name="use_sim_time" value="true"/>
   <param name="robot_description" textfile="$(find autolabor_description)/urdf/autolabor_mini.urdf" />
 
-  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" >
-  </node>
-  <node name="state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" >
-  </node>
+  <node name="joint_state_publisher" pkg="joint_state_publisher"
+        type="joint_state_publisher" />
+  <node name="state_publisher" pkg="robot_state_publisher"
+        type="robot_state_publisher" />
 
   <!-- robot_localization EKF node for the odom frame -->
   <node pkg="robot_localization" type="ekf_localization_node" name="robot_localization_ekf_node_odom"  clear_params="true">
@@ -128,7 +128,7 @@
   <!-- Play bag -->
   <node pkg="rosbag" type="play" name="player" output="log"
         args="
-        /home/gzy/bags/IMR/backyard/backyard_2020-04-27-15-19-08.bag
+        /home/gzy/bags/IMR/backyard/backyard_backward_and_forward_twice_2020-05-04-16-45-40.bag
         --clock -s 0 -r 1 --pause
         /tf:=/tf_null"/>
 

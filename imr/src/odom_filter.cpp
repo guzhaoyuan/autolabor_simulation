@@ -162,15 +162,15 @@ class OdomFilter {
     vo_odom.publish(modified_msg);
   }
 
-  void uwb_lpos_callback(const geometry_msgs::Point::ConstPtr& msg) {
-    luwb_pos_O = Eigen::Vector3d(msg->x, msg->y, msg->z);
+  void uwb_lpos_callback(const geometry_msgs::PointStamped::ConstPtr& msg) {
+    luwb_pos_O = Eigen::Vector3d(msg->point.x, msg->point.y, msg->point.z);
     if (first_f) // Do nothing if fiducial not initialized.
       return;
 
     // Record the initial data report.
     if (first_luwb < 5) {
       first_luwb ++;
-      first_luwb_pos = Eigen::Vector3d(msg->x, msg->y, msg->z);
+      first_luwb_pos = Eigen::Vector3d(msg->point.x, msg->point.y, msg->point.z);
       return;
     }
 
@@ -261,8 +261,8 @@ class OdomFilter {
 //    }
   }
 
-  void uwb_rpos_callback(const geometry_msgs::Point::ConstPtr& msg) {
-    ruwb_pos_O = Eigen::Vector3d(msg->x, msg->y, msg->z);
+  void uwb_rpos_callback(const geometry_msgs::PointStamped::ConstPtr& msg) {
+    ruwb_pos_O = Eigen::Vector3d(msg->point.x, msg->point.y, msg->point.z);
   }
 
   void uwb_callback(const ros::TimerEvent &event) {
@@ -338,9 +338,12 @@ class OdomFilter {
     modified_msg.child_frame_id = "base_link";
 
     // Try to rotate the UWB sensor reading to align with the map frame.
-    // Assume the first UWB reading is at the odom frame. To make alignment, the initial odom frame angle is guessed.
-    Eigen::Vector3d position_W = Eigen::Vector3d(msg->pose.pose.position.x, msg->pose.pose.position.y, msg->pose.pose.position.z) - first_uwb_pos;
-    Eigen::Vector3d position_UWB = Eigen::AngleAxisd(init_odom_yaw, Eigen::Vector3d::UnitZ()).toRotationMatrix() *
+    // Assume the first UWB reading is at the odom frame.
+    // To make alignment, the initial odom frame angle is guessed.
+    Eigen::Vector3d position_W = Eigen::Vector3d(msg->pose.pose.position.x,
+        msg->pose.pose.position.y, msg->pose.pose.position.z) - first_uwb_pos;
+    Eigen::Vector3d position_UWB =
+        Eigen::AngleAxisd(init_odom_yaw, Eigen::Vector3d::UnitZ()).toRotationMatrix() *
         position_W;
 
     tf::StampedTransform odom_to_base_link;
@@ -390,6 +393,7 @@ class OdomFilter {
       first_imu ++;
       return;
     }
+
     // This IMU data represents the /d435_imu_optical_frame in the
     // North-East-Down frame. init_imu_yaw represents the NED to /map rotation.
 
