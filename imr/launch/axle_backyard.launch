@@ -26,15 +26,15 @@
     <param name="odom0" value="t265/odom" />
     <rosparam param="odom0_config">[
         true, true, false, false, false, true,
-        false, false, false, false, false, false,
+        true, true, false, false, false, true,
         false, false, false]</rosparam>
 
     <!-- The UWB gives a bad position estimate here. -->
-    <param name="odom1" value="dwm/odom" />
-    <rosparam param="odom1_config">[
-        true, true, false, false, false, false,
-        false, false, false, false, false, false,
-        false, false, false]</rosparam>
+<!--    <param name="odom1" value="dwm/odom" />-->
+<!--    <rosparam param="odom1_config">[-->
+<!--        true, true, false, false, false, false,-->
+<!--        false, false, false, false, false, false,-->
+<!--        false, false, false]</rosparam>-->
 
     <!-- IMU handles the linear acceleration and angular velocity. -->
     <param name="imu0" value="imu/odom"/>

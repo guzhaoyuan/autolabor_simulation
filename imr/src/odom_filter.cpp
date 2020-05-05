@@ -174,45 +174,45 @@ class OdomFilter {
       return;
     }
 
-    { // Transform UWB in odom frame and send to EKF in local_msg.
-      nav_msgs::Odometry local_msg;
-      local_msg.header.stamp = ros::Time::now();
-      local_msg.header.frame_id = "luwb_odom";
-      local_msg.child_frame_id = "base_link";
-
-      // Try to rotate the UWB sensor reading to align with the map frame.
-      // Assume the first UWB reading is at the odom frame. To make alignment, the initial odom frame angle is guessed.
-      Eigen::Vector3d position_W = Eigen::Vector3d(msg->x, msg->y, msg->z) - first_luwb_pos;
-
-      Eigen::Vector3d position_UWB = Eigen::AngleAxisd(init_odom_yaw, Eigen::Vector3d::UnitZ()).toRotationMatrix() *
-          position_W;
-
-      tf::StampedTransform odom_to_base_link;
-      try {
-        listener.lookupTransform("/odom", "/base_link",
-                                 ros::Time(0), odom_to_base_link);
-      } catch (tf::TransformException ex) {
-        odom_to_base_link.setIdentity();
-      }
-      tf::Quaternion q = odom_to_base_link.getRotation();
-      Eigen::Quaterniond q_OB(q.w(),q.x(),q.y(),q.z());
-      Eigen::Matrix3d R_OB = q_OB.toRotationMatrix();
-      // Compute the base_link in uwb_odom frame by adding offset from UWB.
-      Eigen::Vector3d position_base = position_UWB + R_OB.transpose() *
-          Eigen::Vector3d(distance_UWB_to_base_X, distance_UWB_to_base_Y, 0);
-      local_msg.pose.pose.position.x = position_base(0);
-      local_msg.pose.pose.position.y = position_base(1);
-      local_msg.pose.pose.position.z = 0;
-
-      local_msg.pose.covariance = {uwb_pos_cov, 0., 0., 0., 0., 0.,
-                                   0., uwb_pos_cov, 0., 0., 0., 0.,
-                                   0., 0., 0., 0., 0., 0.,
-                                   0., 0., 0., 0., 0., 0.,
-                                   0., 0., 0., 0., 0., 0.,
-                                   0., 0., 0., 0., 0., 0.};
-
-      uwb_odom.publish(local_msg);
-    }
+//    { // Transform UWB in odom frame and send to EKF in local_msg.
+//      nav_msgs::Odometry local_msg;
+//      local_msg.header.stamp = ros::Time::now();
+//      local_msg.header.frame_id = "luwb_odom";
+//      local_msg.child_frame_id = "base_link";
+//
+//      // Try to rotate the UWB sensor reading to align with the map frame.
+//      // Assume the first UWB reading is at the odom frame. To make alignment, the initial odom frame angle is guessed.
+//      Eigen::Vector3d position_W = Eigen::Vector3d(msg->x, msg->y, msg->z) - first_luwb_pos;
+//
+//      Eigen::Vector3d position_UWB = Eigen::AngleAxisd(init_odom_yaw, Eigen::Vector3d::UnitZ()).toRotationMatrix() *
+//          position_W;
+//
+//      tf::StampedTransform odom_to_base_link;
+//      try {
+//        listener.lookupTransform("/odom", "/base_link",
+//                                 ros::Time(0), odom_to_base_link);
+//      } catch (tf::TransformException ex) {
+//        odom_to_base_link.setIdentity();
+//      }
+//      tf::Quaternion q = odom_to_base_link.getRotation();
+//      Eigen::Quaterniond q_OB(q.w(),q.x(),q.y(),q.z());
+//      Eigen::Matrix3d R_OB = q_OB.toRotationMatrix();
+//      // Compute the base_link in uwb_odom frame by adding offset from UWB.
+//      Eigen::Vector3d position_base = position_UWB + R_OB.transpose() *
+//          Eigen::Vector3d(distance_UWB_to_base_X, distance_UWB_to_base_Y, 0);
+//      local_msg.pose.pose.position.x = position_base(0);
+//      local_msg.pose.pose.position.y = position_base(1);
+//      local_msg.pose.pose.position.z = 0;
+//
+//      local_msg.pose.covariance = {uwb_pos_cov, 0., 0., 0., 0., 0.,
+//                                   0., uwb_pos_cov, 0., 0., 0., 0.,
+//                                   0., 0., 0., 0., 0., 0.,
+//                                   0., 0., 0., 0., 0., 0.,
+//                                   0., 0., 0., 0., 0., 0.,
+//                                   0., 0., 0., 0., 0., 0.};
+//
+//      uwb_odom.publish(local_msg);
+//    }
 
 //    { // Transform UWB in map frame and send to EKF in global_msg.
 //      nav_msgs::Odometry global_msg;
