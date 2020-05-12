@@ -9,6 +9,8 @@
 #include <rviz_visual_tools/rviz_visual_tools.h>
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
+#include <message_filters/synchronizer.h>
+#include <message_filters/sync_policies/approximate_time.h>
 
 namespace rvt = rviz_visual_tools;
 
@@ -30,42 +32,19 @@ class OdomFilter {
     private_node.getParam("distance_UWB_to_base_Y", distance_UWB_to_base_Y);
     private_node.getParam("distance_camera_to_base", distance_camera_to_base);
 
-    run();
-    init();
+    init_ros();
+    init_visual_tool();
   }
 
-  void init() {
+  void init_visual_tool() {
 
     visual_tools_.reset(new rvt::RvizVisualTools("map", "/rviz_visual_tools"));
     visual_tools_->loadMarkerPub();  // create publisher before waiting
     visual_tools_->deleteAllMarkers();
 
-    fiducial0_W = Eigen::Translation3d(Eigen::Vector3d{0, 2.44, 0})
-        * Eigen::AngleAxisd(M_PI/2, Eigen::Vector3d::UnitZ())
-        * Eigen::AngleAxisd(M_PI/2, Eigen::Vector3d::UnitX());
-
-//    tf::poseEigenToTF(fiducial0_W, tf_WF);
-
-//    tf_BC.setIdentity();
-//    tf_BC.setOrigin(tf::Vector3{0.03, 0.01, 0});
-
-//    // Wait for initialization from fiducial.
-//    tf::StampedTransform map_to_odom_link;
-//    while (ros::ok()) { // TODO: This is a bad style, change this later.
-//      try {
-//        listener.lookupTransform("/odom", "/map",
-//                                 ros::Time(0), map_to_odom_link);
-//        break;
-//      } catch (tf::TransformException ex) {
-//        // Only start odometry if global orientation is detected.
-//        ROS_INFO("Wait for initialization from fiducial.");
-//        ros::Duration(0.1).sleep();
-//      }
-//    }
-//    ROS_INFO("Map to Odom initialized by fiducial.");
   }
 
-  void run() {
+  void init_ros() {
     vo_odom = node.advertise<nav_msgs::Odometry>("t265/odom", 10);
     uwb_odom = node.advertise<nav_msgs::Odometry>("dwm/odom", 10);
     global_uwb_odom = node.advertise<nav_msgs::Odometry>("dwm/global_odom", 10);
@@ -84,10 +63,24 @@ class OdomFilter {
     fiducial_listener = node.subscribe("tag_detections", 100,
         &OdomFilter::fiducial_CB, this);
 
-    pub_pos_timer_ = node.createTimer(ros::Duration(1.0/20),
+    pub_pos_timer_ = node.createTimer(ros::Duration(1.0/10),
         &OdomFilter::uwb_callback, this);
+
+// Failed to triger callback for unknown reason. Do not use Synchronizer for now
+//    typedef message_filters::sync_policies::ApproximateTime<geometry_msgs
+//    ::PointStamped, geometry_msgs::PointStamped> MySyncPolicy;
+//    MySyncPolicy my_sync_policy(100);
+//    my_sync_policy.setInterMessageLowerBound(0, ros::Duration(1));
+//    message_filters::Subscriber<geometry_msgs::PointStamped> luwb_sync(node,
+//        "lhs/dwm1001/tag", 100);
+//    message_filters::Subscriber<geometry_msgs::PointStamped> ruwb_sync(node,
+//        "rhs/dwm1001/tag", 100);
+//    message_filters::Synchronizer<MySyncPolicy> sync(static_cast<const MySyncPolicy &>(my_sync_policy),
+//                                                     luwb_sync, ruwb_sync);
+//    sync.registerCallback(boost::bind(&OdomFilter::uwb_callback, this, _1, _2));
   }
 
+  // Visual Odometry goes into local EKF.
   void vo_odom_callback(const nav_msgs::Odometry::ConstPtr& msg) {
     if (first_vo) {
       first_vo = false;
@@ -164,15 +157,15 @@ class OdomFilter {
 
   void uwb_lpos_callback(const geometry_msgs::PointStamped::ConstPtr& msg) {
     luwb_pos_O = Eigen::Vector3d(msg->point.x, msg->point.y, msg->point.z);
-    if (first_f) // Do nothing if fiducial not initialized.
-      return;
-
-    // Record the initial data report.
-    if (first_luwb < 5) {
-      first_luwb ++;
-      first_luwb_pos = Eigen::Vector3d(msg->point.x, msg->point.y, msg->point.z);
-      return;
-    }
+//    if (first_f) // Do nothing if fiducial not initialized.
+//      return;
+//
+//    // Record the initial data report.
+//    if (first_luwb < 5) {
+//      first_luwb ++;
+//      first_luwb_pos = Eigen::Vector3d(msg->point.x, msg->point.y, msg->point.z);
+//      return;
+//    }
 
 //    { // Transform UWB in odom frame and send to EKF in local_msg.
 //      nav_msgs::Odometry local_msg;
@@ -265,8 +258,9 @@ class OdomFilter {
     ruwb_pos_O = Eigen::Vector3d(msg->point.x, msg->point.y, msg->point.z);
   }
 
+  // UWB data goes to global EKF.
   void uwb_callback(const ros::TimerEvent &event) {
-    { // Transform UWB in map frame and send to EKF in global_msg.
+    { // Transform UWB data to map frame and send to global EKF.
       nav_msgs::Odometry global_msg;
       global_msg.header.stamp = ros::Time::now();
       global_msg.header.frame_id = "map";
@@ -323,6 +317,7 @@ class OdomFilter {
     }
   }
 
+  // Deprecated.
   void uwb_odom_callback(const nav_msgs::Odometry::ConstPtr& msg) {
     if (first_uwb < 5) {
       first_uwb ++;
@@ -383,6 +378,8 @@ class OdomFilter {
     return euler[0];
   }
 
+  // IMU should be used in global and local EKF.
+  // For now, only local EKF uses IMU data.
   void imu_odom_callback(const sensor_msgs::Imu::ConstPtr& msg) {
     // Throw away first several imu data.
     if (first_imu < 20) {
@@ -453,6 +450,8 @@ class OdomFilter {
     }
   }
 
+  // Fiducial data is used to initialize the odom frame. Not used in any EKF
+  // yet.
   void fiducial_CB(const apriltag_ros::AprilTagDetectionArray::ConstPtr& tag_array) {
     if (tag_array->detections.empty())
       return;

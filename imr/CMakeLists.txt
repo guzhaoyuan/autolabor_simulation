@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf_conversions
   apriltag_ros
   rviz_visual_tools
+  message_filters
 )
 find_package (Eigen3 REQUIRED)
 
