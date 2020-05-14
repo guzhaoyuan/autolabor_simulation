@@ -34,6 +34,8 @@ class OdomFilter {
 
     init_ros();
     init_visual_tool();
+    ros::Duration(1).sleep();
+    check_data();
   }
 
   void init_visual_tool() {
@@ -78,6 +80,10 @@ class OdomFilter {
 //    message_filters::Synchronizer<MySyncPolicy> sync(static_cast<const MySyncPolicy &>(my_sync_policy),
 //                                                     luwb_sync, ruwb_sync);
 //    sync.registerCallback(boost::bind(&OdomFilter::uwb_callback, this, _1, _2));
+  }
+
+  void check_data() {
+
   }
 
   // Visual Odometry goes into local EKF.
