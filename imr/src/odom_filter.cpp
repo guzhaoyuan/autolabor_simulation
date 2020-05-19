@@ -61,7 +61,8 @@ class OdomFilter {
                                                           10, &OdomFilter::uwb_lpos_callback, this);
     ruwb_pos_listener = node.subscribe("rhs/dwm1001/tag",
                                                           10, &OdomFilter::uwb_rpos_callback, this);
-    imu_listener = node.subscribe("rtabmap/imu", 100, &OdomFilter::imu_odom_callback, this);
+    imu_listener = node.subscribe("magic/imu", 50,
+        &OdomFilter::imu_odom_callback, this);
     fiducial_listener = node.subscribe("tag_detections", 100,
         &OdomFilter::fiducial_CB, this);
 
@@ -407,14 +408,12 @@ class OdomFilter {
       modified_msg.header.frame_id = "d435_imu_optical_frame";
 
       Eigen::Quaterniond q_now(msg->orientation.w, msg->orientation.x, msg->orientation.y, msg->orientation.z);
-//  Eigen::Quaterniond q_diff = q_first.inverse() * q_now;
-      Eigen::Quaterniond q_diff = Eigen::Quaterniond(
-          Eigen::AngleAxisd(-imu_init_val+init_imu_yaw, Eigen::Vector3d::UnitZ())) *
-              q_now;
-      modified_msg.orientation.w = q_diff.w();
-      modified_msg.orientation.x = q_diff.x();
-      modified_msg.orientation.y = q_diff.y();
-      modified_msg.orientation.z = q_diff.z();
+      // IMU offset is not applicable here. Because in local EKF, IMU data is
+      // in relative mode (subtract the first imu data is done in EKF).
+      modified_msg.orientation.w = q_now.w();
+      modified_msg.orientation.x = q_now.x();
+      modified_msg.orientation.y = q_now.y();
+      modified_msg.orientation.z = q_now.z();
 
       modified_msg.orientation_covariance = {imu_ori_cov, 0., 0.,
                                              0., imu_ori_cov, 0.,
@@ -431,13 +430,14 @@ class OdomFilter {
     { // Global imu data: represent base_link orientation on map frame.
       sensor_msgs::Imu global_imu_msg = *msg;
       global_imu_msg.header.stamp = ros::Time::now();
-      global_imu_msg.header.frame_id = "base_link";
+      global_imu_msg.header.frame_id = "d435_imu_optical_frame";
 
       Eigen::Quaterniond q_now(msg->orientation.w, msg->orientation.x, msg->orientation.y, msg->orientation.z);
+      // The q_diff represents no rotation when the imu data first came in.
       Eigen::Quaterniond q_diff = Eigen::Quaterniond(
           Eigen::AngleAxisd(imu_init_val, Eigen::Vector3d::UnitZ())) * q_now;
       Eigen::Quaterniond q_base_W = Eigen::Quaterniond(
-          Eigen::AngleAxisd(init_odom_yaw, Eigen::Vector3d::UnitZ())) * q_diff;
+          Eigen::AngleAxisd(init_imu_yaw, Eigen::Vector3d::UnitZ())) * q_diff;
       global_imu_msg.orientation.w = q_base_W.w();
       global_imu_msg.orientation.x = q_base_W.x();
       global_imu_msg.orientation.y = q_base_W.y();

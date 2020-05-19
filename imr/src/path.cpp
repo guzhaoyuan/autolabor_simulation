@@ -11,6 +11,8 @@ class PathVisualization {
   PathVisualization () {
     ros::NodeHandle private_node("~");
     private_node.param("rate", rate_, 5);
+    private_node.param("delay_start", delay_start, 1.0);
+    ros::Duration(delay_start).sleep();
     path_pub_ = nh_.advertise<nav_msgs::Path>("base_link_path", 10);
     pub_path_timer_ = nh_.createTimer(ros::Duration(1.0/rate_), &PathVisualization::pubPathCallback, this);
   }
@@ -25,7 +27,7 @@ class PathVisualization {
       tf_listener_.lookupTransform("/map", "/base_link",
                                ros::Time(0), odom_to_base_link);
     } catch (tf::TransformException ex) {
-      ROS_WARN(ex.what());
+      ROS_WARN("Cannot get tf: base_link in map frame");
       return;
     }
     geometry_msgs::PoseStamped p;
@@ -42,6 +44,7 @@ class PathVisualization {
   ros::Timer pub_path_timer_;
   int rate_;
   nav_msgs::Path path_;
+  double delay_start;
 };
 
 int main (int argc, char **argv) {

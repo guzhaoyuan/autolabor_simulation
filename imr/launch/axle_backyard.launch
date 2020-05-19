@@ -10,8 +10,9 @@
         type="robot_state_publisher" />
 
   <!-- robot_localization EKF node for the odom frame -->
-  <node pkg="robot_localization" type="ekf_localization_node" name="robot_localization_ekf_node_odom"  clear_params="true">
-    <param name="frequency" value="100" />
+  <node pkg="robot_localization" type="ekf_localization_node"
+        name="robot_localization_ekf_node_odom"  clear_params="true" output="log">
+    <param name="frequency" value="400" />
     <param name="transform_time_offset" value="0.05" />
     <param name="sensor_timeout" value="0.2" />
     <param name="two_d_mode" value="true" />
@@ -39,18 +40,19 @@
     <!-- IMU handles the linear acceleration and angular velocity. -->
     <param name="imu0" value="imu/odom"/>
     <param name="imu0_differential" value="false" />
-    <param name="imu0_relative" value="false" />
+    <param name="imu0_relative" value="true" />
     <param name="imu0_queue_size" value="10" />
     <param name="imu0_remove_gravitational_acceleration" value="true" />
     <rosparam param="imu0_config">[
         false, false, false, false, false, true,
         false, false, false, false, false, true,
-        true, true, true]</rosparam>
+        false, false, false]</rosparam>
   </node>
 
   <!-- robot_localization EKF node for the map frame -->
-  <node pkg="robot_localization" type="ekf_localization_node" name="robot_localization_ekf_node_map"  clear_params="true">
-    <param name="frequency" value="20" />
+  <node pkg="robot_localization" type="ekf_localization_node"
+        name="robot_localization_ekf_node_map"  clear_params="true" output="log">
+    <param name="frequency" value="400" />
     <param name="transform_time_offset" value="0.05" />
     <param name="sensor_timeout" value="0.2" />
     <param name="two_d_mode" value="true" />
@@ -72,15 +74,15 @@
 <!--                                    false, false, false, false, false, false,-->
 <!--                                    false, false, false]</rosparam>-->
 
-<!--    <param name="imu0" value="imu/global_odom"/>-->
-<!--    <param name="imu0_differential" value="false" />-->
-<!--    <param name="imu0_relative" value="true" />-->
-<!--    <param name="imu0_queue_size" value="10" />-->
-<!--    <param name="imu0_remove_gravitational_acceleration" value="true" />-->
-<!--    <rosparam param="imu0_config">[-->
-<!--      false, false, false, false, false, false,-->
-<!--      false, false, false, false, false, true,-->
-<!--      true, true, true]</rosparam>-->
+    <param name="imu0" value="imu/global_odom"/>
+    <param name="imu0_differential" value="false" />
+    <param name="imu0_relative" value="false" />
+    <param name="imu0_queue_size" value="10" />
+    <param name="imu0_remove_gravitational_acceleration" value="true" />
+    <rosparam param="imu0_config">[
+      false, false, false, false, false, true,
+      false, false, false, false, false, true,
+      true, true, true]</rosparam>
   </node>
 
 <!--    t265 image rectify and fiducial detection-->
@@ -111,24 +113,33 @@
       <param name="tag_pos_cov" value="10.0" />
       <param name="vo_pos_cov" value="2.0" />
       <param name="vo_vel_cov" value="20.0" />
-      <param name="uwb_pos_cov" value="1.0" />
+      <param name="uwb_pos_cov" value="0.5" />
       <param name="imu_ori_cov" value="0.3" />
       <param name="init_odom_yaw" value="3.14" />
-      <param name="init_imu_yaw" value="1.57" />
+      <param name="init_imu_yaw" value="1.7" />
       <param name="distance_UWB_to_base_X" value="-0.02" />
       <param name="distance_UWB_to_base_Y" value="-0.30" />
       <param name="distance_UWB_to_base" value="0.308" />
       <param name="distance_camera_to_base" value="-0.200" />
   </node>
 
+    <node name="magic" pkg="imu_filter_madgwick" type="imu_filter_node" args="">
+        <param name="use_mag" type="bool" value="false"/>
+        <param name="publish_tf" type="bool" value="false"/>
+        <param name="world_frame" type="string" value="enu"/>
+        <remap from="/imu/data_raw" to="d435/imu"/>
+        <remap from="/imu/data" to="magic/imu"/>
+    </node>
+
   <node name="path_viz" pkg="imr" type="viz_path" >
       <param name="rate" value="20"/>
+      <param name="delay_start" value="5"/>
   </node>
 
   <!-- Play bag -->
   <node pkg="rosbag" type="play" name="player" output="log"
         args="
-        /home/gzy/bags/IMR/backyard/backyard_backward_and_forward_twice_2020-05-04-16-45-40.bag
+        /home/gzy/bags/IMR/backyard/backyard_fiducials_2020-05-17-13-57-07.bag
         --clock -s 0 -r 1 --pause
         /tf:=/tf_null"/>
 

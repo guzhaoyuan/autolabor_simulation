@@ -5,9 +5,9 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /TF1/Frames1
         - /UWB Odometry1/Shape1
         - /Visual Odometry1/Shape1
+        - /Imu1/Axes properties1
       Splitter Ratio: 0.4841849207878113
     Tree Height: 457
   - Class: rviz/Selection
@@ -79,8 +79,8 @@ Visualization Manager:
           Value: false
         d435_gyro_frame:
           Value: false
-        d435_gyro_optical_frame:
-          Value: true
+        d435_imu_optical_frame:
+          Value: false
         d435_infra1_frame:
           Value: false
         d435_infra1_optical_frame:
@@ -90,7 +90,11 @@ Visualization Manager:
         d435_infra2_optical_frame:
           Value: false
         d435_link:
-          Value: false
+          Value: true
+        detected_base:
+          Value: true
+        detected_fiducial:
+          Value: true
         fiducial0:
           Value: true
         lidar:
@@ -120,11 +124,21 @@ Visualization Manager:
         t265_gyro_optical_frame:
           Value: false
         t265_link:
-          Value: false
+          Value: true
         t265_odom_frame:
           Value: false
         t265_pose_frame:
           Value: false
+        tag_0:
+          Value: true
+        tag_1:
+          Value: true
+        tag_2:
+          Value: true
+        tag_4:
+          Value: true
+        tag_5:
+          Value: true
         uwb_odom:
           Value: false
       Marker Scale: 1
@@ -134,6 +148,8 @@ Visualization Manager:
       Show Names: true
       Tree:
         map:
+          detected_base:
+            {}
           fiducial0:
             {}
           odom:
@@ -154,7 +170,7 @@ Visualization Manager:
                   d435_depth_optical_frame:
                     {}
                 d435_gyro_frame:
-                  d435_gyro_optical_frame:
+                  d435_imu_optical_frame:
                     {}
                 d435_infra1_frame:
                   {}
@@ -170,13 +186,24 @@ Visualization Manager:
                       {}
                   t265_fisheye1_frame:
                     t265_fisheye1_optical_frame:
-                      {}
+                      detected_fiducial:
+                        {}
                   t265_fisheye2_frame:
                     t265_fisheye2_optical_frame:
                       {}
                   t265_gyro_frame:
                     t265_gyro_optical_frame:
                       {}
+                  tag_0:
+                    {}
+                  tag_1:
+                    {}
+                  tag_2:
+                    {}
+                  tag_4:
+                    {}
+                  tag_5:
+                    {}
             luwb_odom:
               {}
             ruwb_odom:
@@ -283,7 +310,7 @@ Visualization Manager:
     - Class: rviz/Axes
       Enabled: false
       Length: 1
-      Name: Axes
+      Name: Origin
       Radius: 0.10000000149011612
       Reference Frame: <Fixed Frame>
       Value: false
@@ -298,10 +325,10 @@ Visualization Manager:
       Unreliable: false
       Value: false
       Visibility:
-        Axes: true
         Grid: false
         Imu: false
         MarkerArray: true
+        Origin: true
         RobotModel: false
         TF: false
         UWB Odometry: false
@@ -318,7 +345,7 @@ Visualization Manager:
         Enable acceleration: false
       Axes properties:
         Axes scale: 1
-        Enable axes: false
+        Enable axes: true
       Box properties:
         Box alpha: 0.5
         Box color: 255; 0; 0
@@ -329,7 +356,7 @@ Visualization Manager:
       Class: rviz_imu_plugin/Imu
       Enabled: true
       Name: Imu
-      Topic: /imu/odom
+      Topic: /imu/global_odom
       Unreliable: false
       Value: true
       fixed_frame_orientation: true
@@ -337,7 +364,7 @@ Visualization Manager:
       Buffer Length: 1
       Class: rviz/Path
       Color: 25; 255; 0
-      Enabled: false
+      Enabled: true
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
@@ -355,7 +382,7 @@ Visualization Manager:
       Shaft Length: 0.10000000149011612
       Topic: /base_link_path
       Unreliable: false
-      Value: false
+      Value: true
     - Class: rviz/Image
       Enabled: true
       Image Topic: /left_tag_detections_image
@@ -369,13 +396,13 @@ Visualization Manager:
       Unreliable: false
       Value: true
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /rviz_visual_tools
       Name: MarkerArray
       Namespaces:
-        Sphere: true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 0; 0; 0
@@ -404,25 +431,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 7.124641418457031
+      Distance: 6.626230239868164
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 1.9862360954284668
-        Y: 1.5950565338134766
-        Z: 0.2875797748565674
+        X: 2.7673723697662354
+        Y: 1.9602702856063843
+        Z: 1.0208356380462646
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.2847973108291626
+      Pitch: 1.0647965669631958
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.7104034423828125
+      Yaw: 4.765398025512695
     Saved: ~
 Window Geometry:
   Displays:
