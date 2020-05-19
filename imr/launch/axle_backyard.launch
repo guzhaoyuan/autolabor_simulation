@@ -86,10 +86,10 @@
   </node>
 
 <!--    t265 image rectify and fiducial detection-->
-    <include file="$(find imr_perception)/launch/imr_t265_detect.launch"/>
+    <include file="$(find imr_perception)/launch/imr_d435_detect.launch"/>
 
     <node pkg="tf" type="static_transform_publisher" name="map_to_fiducial"
-          args="0.0 2.44 0.41 1.571 0.0 1.571 /map /fiducial0 200" />
+          args="0.0 2.44 1.05 1.571 0.0 1.571 /map /fiducial0 200" />
     <!--  t265 odom is based on this frame-->
     <node pkg="tf" type="static_transform_publisher" name="odom_to_t265_odom"
           args="0.2 0.0 0.0 0.0 0.0 0.0 /odom /t265_odom_frame 200" />
