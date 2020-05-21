@@ -85,16 +85,20 @@
       true, true, true]</rosparam>
   </node>
 
-<!--    t265 image rectify and fiducial detection-->
+    <!--    d435i fiducial detection-->
     <include file="$(find imr_perception)/launch/imr_d435_detect.launch"/>
-
-    <node pkg="tf" type="static_transform_publisher" name="map_to_fiducial"
+    <!--    Fiducial marker locations-->
+    <node pkg="tf" type="static_transform_publisher" name="fiducial0"
           args="0.0 2.44 1.05 1.571 0.0 1.571 /map /fiducial0 200" />
+    <node pkg="tf" type="static_transform_publisher" name="fiducial1"
+          args="0.0 4.88 1.05 1.571 0.0 1.571 /map /fiducial1 200" />
+    <node pkg="tf" type="static_transform_publisher" name="fiducial2"
+          args="0.0 7.32 1.05 1.571 0.0 1.571 /map /fiducial2 200" />
+    <!--    Intrinsics of Axle robot-->
+    <include file="$(find imr_perception)/launch/imr_transformation.launch"/>
     <!--  t265 odom is based on this frame-->
     <node pkg="tf" type="static_transform_publisher" name="odom_to_t265_odom"
           args="0.2 0.0 0.0 0.0 0.0 0.0 /odom /t265_odom_frame 200" />
-    <node pkg="tf" type="static_transform_publisher" name="base_link_to_t265"
-          args="0.2 0.0 0.0 0.0 0.0 0.0 /base_link /t265_pose_frame 200" />
     <!--  uwb data is based on this frame-->
     <node pkg="tf" type="static_transform_publisher" name="odom_to_uwb_odom"
           args="-0.308 0.0 0.0 0.0 0.0 0.0 /odom /uwb_odom 200" />
@@ -102,9 +106,7 @@
           args="0.02 0.30 0.0 0.0 0.0 0.0 /odom /luwb_odom 200" />
     <node pkg="tf" type="static_transform_publisher" name="odom_to_ruwb_odom"
           args="0.02 -0.30 0.0 0.0 0.0 0.0 /odom /ruwb_odom 200" />
-    <!--    camera raw image is based on the child of this frame-->
-    <node pkg="tf" type="static_transform_publisher" name="robot_to_d435"
-          args="0.0 0.0 0.0 0.0 0.0 0.0 /base_link /d435_link 200" />
+
 
   <node name="rviz" pkg="rviz" type="rviz"
         args="-d $(find imr)/rviz/axle_localization.rviz" />
