@@ -298,7 +298,7 @@ class OdomFilter {
                                     0., uwb_pos_cov, 0., 0., 0., 0.,
                                     0., 0., 0., 0., 0., 0.,
                                     0., 0., 0., 0., 0., 0.,
-                                    0., 0., 10., 0., 0., 0.,
+                                    0., 0., 0., 0., 0., 0.,
                                     0., 0., 0., 0., 0., uwb_pos_cov};
 
       global_uwb_odom.publish(global_msg);
@@ -470,14 +470,14 @@ class OdomFilter {
     tf::Transform tf_CF;
     tf::poseMsgToTF(tag_array->detections[0].pose.pose.pose, tf_CF);
     tf_broadcaster_.sendTransform(tf::StampedTransform(tf_CF,
-        ros::Time::now(), "t265_fisheye1_optical_frame", "detected_fiducial"));
+        ros::Time::now(), "d435_correct", "detected_fiducial"));
 
     tf::StampedTransform tf_WF;
     tf::StampedTransform tf_BC;
     try {
       listener.lookupTransform("/map", "/fiducial0",
                                ros::Time(0), tf_WF);
-      listener.lookupTransform("/base_link", "/t265_fisheye1_optical_frame",
+      listener.lookupTransform("/base_link", "/d435_correct",
                                ros::Time(0), tf_BC);
     } catch (tf::TransformException ex) {
       return;
@@ -498,39 +498,39 @@ class OdomFilter {
       return;
     }
 
-//    double distance = tf_CF.getOrigin().length();
-//    if (distance > 3 || distance < 2)
-//      return;
-//    try {
+    double distance = tf_CF.getOrigin().length();
+    if (distance > 4 || distance < 1)
+      return;
+    try {
 //      tf::StampedTransform tf_OB;
 //      listener.lookupTransform("/odom", "/base_link",
 //                               ros::Time(0), tf_OB);
 //
 //      tf::Transform tf_WO = tf_WB * tf_OB.inverse();
-//
-//      nav_msgs::Odometry tag_msg;
-//      tag_msg.header.stamp = ros::Time::now();
-//      tag_msg.header.frame_id = "map";
-//      tag_msg.child_frame_id = "base_link";
-//      tag_msg.pose.pose.position.x = tf_WB.getOrigin().getX();
-//      tag_msg.pose.pose.position.y = tf_WB.getOrigin().getY();
-//      tag_msg.pose.pose.position.z = 0;
-//      tf::Quaternion q_WB = tf_WB.getRotation();
-//      tag_msg.pose.pose.orientation.x = q_WB.x();
-//      tag_msg.pose.pose.orientation.y = q_WB.y();
-//      tag_msg.pose.pose.orientation.z = q_WB.z();
-//      tag_msg.pose.pose.orientation.w = q_WB.w();
-//      tag_msg.pose.covariance = {tag_pos_cov, 0., 0., 0., 0., 0.,
-//                                      0., tag_pos_cov, 0., 0., 0., 0.,
-//                                      0., 0., 0., 0., 0., 0.,
-//                                      0., 0., 0., 0., 0., 0.,
-//                                      0., 0., 0., 0., 0., 0.,
-//                                      0., 0., 0., 0., 0., 0.};
-//
-//      tag_odom.publish(tag_msg);
-//    } catch (tf::TransformException ex) {
-//      return;
-//    }
+
+      nav_msgs::Odometry tag_msg;
+      tag_msg.header.stamp = ros::Time::now();
+      tag_msg.header.frame_id = "map";
+      tag_msg.child_frame_id = "base_link";
+      tag_msg.pose.pose.position.x = tf_WB.getOrigin().getX();
+      tag_msg.pose.pose.position.y = tf_WB.getOrigin().getY();
+      tag_msg.pose.pose.position.z = 0;
+      tf::Quaternion q_WB = tf_WB.getRotation();
+      tag_msg.pose.pose.orientation.x = q_WB.x();
+      tag_msg.pose.pose.orientation.y = q_WB.y();
+      tag_msg.pose.pose.orientation.z = q_WB.z();
+      tag_msg.pose.pose.orientation.w = q_WB.w();
+      tag_msg.pose.covariance = {tag_pos_cov, 0., 0., 0., 0., 0.,
+                                      0., tag_pos_cov, 0., 0., 0., 0.,
+                                      0., 0., 0., 0., 0., 0.,
+                                      0., 0., 0., 0., 0., 0.,
+                                      0., 0., 0., 0., 0., 0.,
+                                      0., 0., 0., 0., 0., tag_pos_cov};
+
+      tag_odom.publish(tag_msg);
+    } catch (tf::TransformException ex) {
+      return;
+    }
   }
 
   ros::NodeHandle node;

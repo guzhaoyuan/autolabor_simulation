@@ -31,11 +31,11 @@
         false, false, false]</rosparam>
 
     <!-- The UWB gives a bad position estimate here. -->
-<!--    <param name="odom1" value="dwm/odom" />-->
-<!--    <rosparam param="odom1_config">[-->
-<!--        true, true, false, false, false, false,-->
-<!--        false, false, false, false, false, false,-->
-<!--        false, false, false]</rosparam>-->
+    <param name="odom1" value="dwm/odom" />
+    <rosparam param="odom1_config">[
+        true, true, false, false, false, false,
+        false, false, false, false, false, false,
+        false, false, false]</rosparam>
 
     <!-- IMU handles the linear acceleration and angular velocity. -->
     <param name="imu0" value="imu/odom"/>
@@ -63,17 +63,22 @@
     <param name="world_frame" value="map" />
     <param name="print_diagnostics" value="true" />
 
+<!--UWB-->
     <param name="odom0" value="dwm/global_odom" />
     <rosparam param="odom0_config">[
       true, true, false, false, false, true,
       false, false, false, false, false, false,
       false, false, false]</rosparam>
 
-<!--    <param name="odom1" value="tag/odom" />-->
-<!--    <rosparam param="odom1_config">[true, true, false, false, false, true,-->
-<!--                                    false, false, false, false, false, false,-->
-<!--                                    false, false, false]</rosparam>-->
+<!--Fiducial-->
+    <param name="odom1" value="tag/odom" />
+    <param name="odom1_relative" value="true" />
+    <rosparam param="odom1_config">[
+        false, false, false, false, false, false,
+        true, true, false, false, false, true,
+        false, false, false]</rosparam>
 
+<!--IMU-->
     <param name="imu0" value="imu/global_odom"/>
     <param name="imu0_differential" value="false" />
     <param name="imu0_relative" value="false" />
@@ -118,7 +123,7 @@
       <param name="uwb_pos_cov" value="0.5" />
       <param name="imu_ori_cov" value="0.3" />
       <param name="init_odom_yaw" value="3.14" />
-      <param name="init_imu_yaw" value="1.7" />
+      <param name="init_imu_yaw" value="1.6" />
       <param name="distance_UWB_to_base_X" value="-0.02" />
       <param name="distance_UWB_to_base_Y" value="-0.30" />
       <param name="distance_UWB_to_base" value="0.308" />
