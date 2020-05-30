@@ -18,6 +18,8 @@ find_package(catkin REQUIRED COMPONENTS
   message_filters
 )
 find_package (Eigen3 REQUIRED)
+LIST(APPEND CMAKE_MODULE_PATH /usr/local/lib/cmake/xlnt)
+find_package(xlnt MODULE)
 
 catkin_package(
 #  INCLUDE_DIRS include
@@ -42,4 +44,4 @@ add_executable(odom_filter src/odom_filter.cpp)
 target_link_libraries(odom_filter ${catkin_LIBRARIES})
 
 add_executable(viz_path src/path.cpp)
-target_link_libraries(viz_path ${catkin_LIBRARIES})
+target_link_libraries(viz_path ${catkin_LIBRARIES} xlnt::xlnt)

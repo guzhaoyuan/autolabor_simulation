@@ -141,6 +141,8 @@
   <node name="path_viz" pkg="imr" type="viz_path" >
       <param name="rate" value="20"/>
       <param name="delay_start" value="5"/>
+      <param name="begin_point" value="TPS_Auto_0200720"/>
+      <param name="end_point" value="TPS_Auto_0201083"/>
   </node>
 
   <!-- Play bag -->
