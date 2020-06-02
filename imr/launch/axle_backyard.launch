@@ -1,9 +1,8 @@
 <launch>
-  <arg name="model" />
 
   <param name="use_sim_time" value="true"/>
-  <param name="robot_description" textfile="$(find autolabor_description)/urdf/autolabor_mini.urdf" />
-
+  <param name="robot_description"
+         textfile="$(find imr_localization)/urdf/axle.urdf" />
   <node name="joint_state_publisher" pkg="joint_state_publisher"
         type="joint_state_publisher" />
   <node name="state_publisher" pkg="robot_state_publisher"
@@ -31,11 +30,11 @@
         false, false, false]</rosparam>
 
     <!-- The UWB gives a bad position estimate here. -->
-    <param name="odom1" value="dwm/odom" />
-    <rosparam param="odom1_config">[
-        true, true, false, false, false, false,
-        false, false, false, false, false, false,
-        false, false, false]</rosparam>
+<!--    <param name="odom1" value="dwm/odom" />-->
+<!--    <rosparam param="odom1_config">[-->
+<!--        true, true, false, false, false, false,-->
+<!--        false, false, false, false, false, false,-->
+<!--        false, false, false]</rosparam>-->
 
     <!-- IMU handles the linear acceleration and angular velocity. -->
     <param name="imu0" value="imu/odom"/>
@@ -94,11 +93,11 @@
     <include file="$(find imr_perception)/launch/imr_d435_detect.launch"/>
     <!--    Fiducial marker locations-->
     <node pkg="tf" type="static_transform_publisher" name="fiducial0"
-          args="0.0 2.44 1.05 1.571 0.0 1.571 /map /fiducial0 200" />
+          args="-0.026 2.157 1.05 1.571 0.0 1.571 /map /fiducial0 200" />
     <node pkg="tf" type="static_transform_publisher" name="fiducial1"
-          args="0.0 4.88 1.05 1.571 0.0 1.571 /map /fiducial1 200" />
+          args="0.004 4.584 1.05 1.571 0.0 1.571 /map /fiducial1 200" />
     <node pkg="tf" type="static_transform_publisher" name="fiducial2"
-          args="0.0 7.32 1.05 1.571 0.0 1.571 /map /fiducial2 200" />
+          args="-0.019 7.026 1.05 1.571 0.0 1.571 /map /fiducial2 200" />
     <!--    Intrinsics of Axle robot-->
     <include file="$(find imr_perception)/launch/imr_transformation.launch"/>
     <!--  t265 odom is based on this frame-->
@@ -140,15 +139,16 @@
 
   <node name="path_viz" pkg="imr" type="viz_path" >
       <param name="rate" value="20"/>
-      <param name="delay_start" value="5"/>
-      <param name="begin_point" value="TPS_Auto_0200720"/>
-      <param name="end_point" value="TPS_Auto_0201083"/>
+      <param name="delay_start" value="2"/>
+      <param name="target_frame" value="map"/>
+      <param name="begin_point" value="TPS_Auto_0202420"/>
+      <param name="end_point" value="TPS_Auto_0203226"/>
   </node>
 
   <!-- Play bag -->
   <node pkg="rosbag" type="play" name="player" output="log"
         args="
-        /home/gzy/bags/IMR/backyard/backyard_fiducials_2020-05-17-13-57-07.bag
+        /home/gzy/bags/IMR/backyard/backyard_2020-05-24-19-53-26.bag
         --clock -s 0 -r 1 --pause
         /tf:=/tf_null"/>
 

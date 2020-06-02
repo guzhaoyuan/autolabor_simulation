@@ -14,6 +14,8 @@ class PathVisualization {
     ros::NodeHandle private_node("~");
     private_node.param("rate", rate_, 5);
     private_node.param("delay_start", delay_start, 1.0);
+    private_node.param<std::string>("target_frame", target_frame,
+                                    "map");
     ros::Duration(delay_start).sleep();
     path_pub_ = nh_.advertise<nav_msgs::Path>("base_link_path", 10);
     pub_path_timer_ = nh_.createTimer(ros::Duration(1.0/rate_),
@@ -22,12 +24,12 @@ class PathVisualization {
 
   void pubPathCallback(const ros::TimerEvent &event) {
 
-    path_.header.frame_id = "map";
+    path_.header.frame_id = target_frame;
     path_.header.stamp = ros::Time::now();
 
     tf::StampedTransform odom_to_base_link;
     try {
-      tf_listener_.lookupTransform("/map", "/base_link",
+      tf_listener_.lookupTransform(target_frame, "base_link",
                                ros::Time(0), odom_to_base_link);
     } catch (tf::TransformException ex) {
       ROS_WARN("Cannot get tf: base_link in map frame");
@@ -48,6 +50,7 @@ class PathVisualization {
   int rate_;
   nav_msgs::Path path_;
   double delay_start;
+  std::string target_frame;
 };
 
 class GroundTruthVisualization {
@@ -63,7 +66,8 @@ class GroundTruthVisualization {
 
     ros::Duration(delay_start).sleep();
 
-    path_pub_ = nh_.advertise<nav_msgs::Path>("ground_thuth_path", 10);
+    ground_truth_pub_ = nh_.advertise<nav_msgs::Path>("ground_truth", 10);
+    ground_truth_flat_pub_ = nh_.advertise<nav_msgs::Path>("ground_truth_flat", 10);
     pub_path_timer_ = nh_.createTimer(ros::Duration(1.0/rate_),
         &GroundTruthVisualization::pubPathCallback, this);
 
@@ -76,7 +80,8 @@ class GroundTruthVisualization {
   }
 
   void pubPathCallback(const ros::TimerEvent &event) {
-    path_pub_.publish(path_);
+    ground_truth_pub_.publish(path_);
+    ground_truth_flat_pub_.publish(flat_path_);
   }
 
   void PathLoader() {
@@ -110,13 +115,17 @@ class GroundTruthVisualization {
           points.block(0, end_idx, 3, begin_idx - end_idx);
 
       path_.header.stamp = ros::Time::now();
+      flat_path_.header.stamp = ros::Time::now();
       path_.header.frame_id = "map";
+      flat_path_.header.frame_id = "map";
       for (int j = 0; j < path_points.cols(); j++) {
         geometry_msgs::PoseStamped pose_stamped;
         pose_stamped.pose.position.x = path_points(0,j);
         pose_stamped.pose.position.y = path_points(1,j);
         pose_stamped.pose.position.z = path_points(2,j);
         path_.poses.push_back(pose_stamped);
+        pose_stamped.pose.position.z = 0;
+        flat_path_.poses.push_back(pose_stamped);
       }
       ROS_INFO("Ground truth processing complete.");
     } else {
@@ -126,7 +135,8 @@ class GroundTruthVisualization {
 
   ros::NodeHandle nh_;
 
-  ros::Publisher path_pub_;
+  ros::Publisher ground_truth_pub_;
+  ros::Publisher ground_truth_flat_pub_;
   ros::Timer pub_path_timer_;
 
   xlnt::workbook wb;
@@ -136,6 +146,7 @@ class GroundTruthVisualization {
   int end_idx = 0;
 
   nav_msgs::Path path_;
+  nav_msgs::Path flat_path_;
 
   int rate_;
   double delay_start;
