@@ -21,9 +21,12 @@ class OdomFilter {
     ros::NodeHandle private_node("~");
 
     private_node.getParam("tag_pos_cov", tag_pos_cov);
+    private_node.getParam("tag_ori_cov", tag_ori_cov);
     private_node.getParam("vo_pos_cov", vo_pos_cov);
-    private_node.getParam("vo_vel_cov", vo_pos_cov);
+    private_node.getParam("vo_ori_cov", vo_ori_cov);
+    private_node.getParam("vo_vel_cov", vo_vel_cov);
     private_node.getParam("uwb_pos_cov", uwb_pos_cov);
+    private_node.getParam("uwb_ori_cov", uwb_ori_cov);
     private_node.getParam("init_odom_yaw", init_odom_yaw);
     private_node.getParam("init_imu_yaw", init_imu_yaw);
     private_node.getParam("imu_ori_cov", imu_ori_cov);
@@ -151,7 +154,7 @@ class OdomFilter {
                                     0., 0., 0., 0., 0., 0.,
                                     0., 0., 0., 0., 0., 0.,
                                     0., 0., 0., 0., 0., 0.,
-                                    0., 0., 0., 0., 0., vo_pos_cov};
+                                    0., 0., 0., 0., 0., vo_ori_cov};
 
     modified_msg.twist.covariance = {vo_vel_cov, 0., 0., 0., 0., 0.,
                                      0., vo_vel_cov, 0., 0., 0., 0.,
@@ -163,7 +166,7 @@ class OdomFilter {
   }
 
   void uwb_lpos_callback(const geometry_msgs::PointStamped::ConstPtr& msg) {
-    luwb_pos_O = Eigen::Vector3d(msg->point.x, msg->point.y, msg->point.z);
+    luwb_pos_O = Eigen::Vector3d(msg->point.x, msg->point.y-0.5, msg->point.z);
 //    if (first_f) // Do nothing if fiducial not initialized.
 //      return;
 //
@@ -262,7 +265,7 @@ class OdomFilter {
   }
 
   void uwb_rpos_callback(const geometry_msgs::PointStamped::ConstPtr& msg) {
-    ruwb_pos_O = Eigen::Vector3d(msg->point.x, msg->point.y, msg->point.z);
+    ruwb_pos_O = Eigen::Vector3d(msg->point.x, msg->point.y-0.5, msg->point.z);
   }
 
   // UWB data goes to global EKF.
@@ -299,7 +302,7 @@ class OdomFilter {
                                     0., 0., 0., 0., 0., 0.,
                                     0., 0., 0., 0., 0., 0.,
                                     0., 0., 0., 0., 0., 0.,
-                                    0., 0., 0., 0., 0., uwb_pos_cov};
+                                    0., 0., 0., 0., 0., uwb_ori_cov};
 
       global_uwb_odom.publish(global_msg);
 
@@ -499,7 +502,7 @@ class OdomFilter {
     }
 
     double distance = tf_CF.getOrigin().length();
-    if (distance > 4 || distance < 1)
+    if (distance > 6 || distance < 1)
       return;
     try {
 //      tf::StampedTransform tf_OB;
@@ -525,7 +528,7 @@ class OdomFilter {
                                       0., 0., 0., 0., 0., 0.,
                                       0., 0., 0., 0., 0., 0.,
                                       0., 0., 0., 0., 0., 0.,
-                                      0., 0., 0., 0., 0., tag_pos_cov};
+                                      0., 0., 0., 0., 0., tag_ori_cov};
 
       tag_odom.publish(tag_msg);
     } catch (tf::TransformException ex) {
@@ -562,9 +565,12 @@ class OdomFilter {
   Eigen::Quaterniond q_first;
 
   double tag_pos_cov = 0.0;
+  double tag_ori_cov = 0.0;
   double vo_pos_cov = 0.0;
+  double vo_ori_cov = 0.0;
   double vo_vel_cov = 0.0;
   double uwb_pos_cov = 0.0;
+  double uwb_ori_cov = 0.0;
   double imu_ori_cov = 0.01;
   double init_odom_yaw = -1 * M_PI;
   double init_imu_yaw = -0.75 * M_PI;

@@ -11,7 +11,7 @@
   <!-- robot_localization EKF node for the odom frame -->
   <node pkg="robot_localization" type="ekf_localization_node"
         name="robot_localization_ekf_node_odom"  clear_params="true" output="log">
-    <param name="frequency" value="400" />
+    <param name="frequency" value="40" />
     <param name="transform_time_offset" value="0.05" />
     <param name="sensor_timeout" value="0.2" />
     <param name="two_d_mode" value="true" />
@@ -22,14 +22,14 @@
     <param name="world_frame" value="odom" />
     <param name="print_diagnostics" value="true" />
 
-    <!-- The camera is bad at position, only use velocity here. -->
+<!-- T265 Visual Odometry-->
     <param name="odom0" value="t265/odom" />
     <rosparam param="odom0_config">[
         true, true, false, false, false, true,
-        true, true, false, false, false, true,
+        false, false, false, false, false, false,
         false, false, false]</rosparam>
 
-    <!-- The UWB gives a bad position estimate here. -->
+<!-- The UWB gives a bad position estimate here. -->
 <!--    <param name="odom1" value="dwm/odom" />-->
 <!--    <rosparam param="odom1_config">[-->
 <!--        true, true, false, false, false, false,-->
@@ -46,12 +46,12 @@
         false, false, false, false, false, true,
         false, false, false, false, false, true,
         false, false, false]</rosparam>
-  </node>
+  </node> <!-- End of Local IMU -->
 
   <!-- robot_localization EKF node for the map frame -->
   <node pkg="robot_localization" type="ekf_localization_node"
         name="robot_localization_ekf_node_map"  clear_params="true" output="log">
-    <param name="frequency" value="400" />
+    <param name="frequency" value="40" />
     <param name="transform_time_offset" value="0.05" />
     <param name="sensor_timeout" value="0.2" />
     <param name="two_d_mode" value="true" />
@@ -77,6 +77,13 @@
         true, true, false, false, false, true,
         false, false, false]</rosparam>
 
+<!-- Visual Odometry is used as velocity here. -->
+<!--    <param name="odom0" value="t265/odom" />-->
+<!--    <rosparam param="odom0_config">[-->
+<!--      true, true, false, false, false, true,-->
+<!--      false, false, false, false, false, false,-->
+<!--      false, false, false]</rosparam>-->
+
 <!--IMU-->
     <param name="imu0" value="imu/global_odom"/>
     <param name="imu0_differential" value="false" />
@@ -87,7 +94,7 @@
       false, false, false, false, false, true,
       false, false, false, false, false, true,
       true, true, true]</rosparam>
-  </node>
+  </node> <!-- End of Global IMU -->
 
     <!--    d435i fiducial detection-->
     <include file="$(find imr_perception)/launch/imr_d435_detect.launch"/>
@@ -116,11 +123,14 @@
         args="-d $(find imr)/rviz/axle_localization.rviz" />
   
   <node name="odom_filter" pkg="imr" type="odom_filter" output="screen" >
-      <param name="tag_pos_cov" value="10.0" />
-      <param name="vo_pos_cov" value="2.0" />
-      <param name="vo_vel_cov" value="20.0" />
+      <param name="tag_pos_cov" value="0.5" />
+      <param name="tag_ori_cov" value="0.3" />
+      <param name="vo_pos_cov" value="1.0" />
+      <param name="vo_ori_cov" value="0.3" />
+      <param name="vo_vel_cov" value="0.0" />
       <param name="uwb_pos_cov" value="0.5" />
-      <param name="imu_ori_cov" value="0.3" />
+      <param name="uwb_ori_cov" value="0.3" />
+      <param name="imu_ori_cov" value="0.2" />
       <param name="init_odom_yaw" value="3.14" />
       <param name="init_imu_yaw" value="1.6" />
       <param name="distance_UWB_to_base_X" value="-0.02" />
@@ -141,15 +151,26 @@
       <param name="rate" value="20"/>
       <param name="delay_start" value="2"/>
       <param name="target_frame" value="map"/>
-      <param name="begin_point" value="TPS_Auto_0202420"/>
-      <param name="end_point" value="TPS_Auto_0203226"/>
+      <param name="begin_point" value="TPS_Auto_0203227"/>
+      <param name="end_point" value="TPS_Auto_0204048"/>
   </node>
 
   <!-- Play bag -->
   <node pkg="rosbag" type="play" name="player" output="log"
         args="
-        /home/gzy/bags/IMR/backyard/backyard_2020-05-24-19-53-26.bag
-        --clock -s 0 -r 1 --pause
+        /home/gzy/bags/IMR/backyard/backyard_2020-05-24-19-58-14.bag
+        --clock -s 0 -r 0.8 --pause
         /tf:=/tf_null"/>
 
+<!--    many squares-->
+<!--    /home/gzy/bags/IMR/backyard/backyard_2020-05-24-19-53-26.bag-->
+
+<!--    robot path-->
+<!--    /home/gzy/bags/IMR/backyard/backyard_2020-05-24-19-47-38.bag-->
+
+<!--    shape 8-->
+<!--    backyard_2020-05-24-19-58-14-->
+
+<!--    wrong imu-->
+<!--    backyard_2020-05-24-19-44-49-->
 </launch>
