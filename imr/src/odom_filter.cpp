@@ -61,9 +61,9 @@ class OdomFilter {
         100, &OdomFilter::vo_odom_callback, this);
 //    uwb_odom_listener = node.subscribe("dwm_odom", 100, &OdomFilter::uwb_odom_callback, this);
     luwb_pos_listener = node.subscribe("lhs/dwm1001/tag",
-                                                          10, &OdomFilter::uwb_lpos_callback, this);
+        10, &OdomFilter::uwb_lpos_callback, this);
     ruwb_pos_listener = node.subscribe("rhs/dwm1001/tag",
-                                                          10, &OdomFilter::uwb_rpos_callback, this);
+        10, &OdomFilter::uwb_rpos_callback, this);
     imu_listener = node.subscribe("magic/imu", 50,
         &OdomFilter::imu_odom_callback, this);
     fiducial_listener = node.subscribe("tag_detections", 100,
@@ -71,6 +71,9 @@ class OdomFilter {
 
     pub_pos_timer_ = node.createTimer(ros::Duration(1.0/10),
         &OdomFilter::uwb_callback, this);
+
+    button_listener = node.subscribe("rviz_visual_tools_gui", 100,
+                                     &OdomFilter::GlobalDataControl, this);
 
 // Failed to triger callback for unknown reason. Do not use Synchronizer for now
 //    typedef message_filters::sync_policies::ApproximateTime<geometry_msgs
@@ -88,6 +91,14 @@ class OdomFilter {
 
   void check_data() {
 
+  }
+
+  void GlobalDataControl(const sensor_msgs::Joy::ConstPtr& joy_msg) {
+    send_global_data = !send_global_data;
+    if (send_global_data)
+      ROS_INFO("Start sending global data (Fiducial detection/IMU).");
+    else
+      ROS_INFO("Stop sending global data (Fiducial detection/IMU).");
   }
 
   // Visual Odometry goes into local EKF.
@@ -270,6 +281,9 @@ class OdomFilter {
 
   // UWB data goes to global EKF.
   void uwb_callback(const ros::TimerEvent &event) {
+    if (!send_global_data)
+      return;
+
     { // Transform UWB data to map frame and send to global EKF.
       nav_msgs::Odometry global_msg;
       global_msg.header.stamp = ros::Time::now();
@@ -462,6 +476,9 @@ class OdomFilter {
   // Fiducial data is used to initialize the odom frame. Not used in any EKF
   // yet.
   void fiducial_CB(const apriltag_ros::AprilTagDetectionArray::ConstPtr& tag_array) {
+    if (!send_global_data)
+      return;
+
     if (tag_array->detections.empty())
       return;
 
@@ -550,6 +567,7 @@ class OdomFilter {
   ros::Subscriber ruwb_pos_listener;
   ros::Subscriber imu_listener;
   ros::Subscriber fiducial_listener;
+  ros::Subscriber button_listener;
   ros::Timer pub_pos_timer_;
 
   tf::TransformListener listener;
@@ -579,6 +597,7 @@ class OdomFilter {
   double distance_UWB_to_base_Y = 0.28;
   double distance_camera_to_base = -0.20;
   const double distance_world_to_beacon_Y = 2.44;
+  bool send_global_data = true;
 
   Eigen::Matrix4d first_cam_odom = Eigen::Matrix4d::Identity();
   Eigen::Vector3d first_uwb_pos = Eigen::Vector3d::Zero();
