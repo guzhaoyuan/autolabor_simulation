@@ -9,6 +9,8 @@
 #include <rviz_visual_tools/rviz_visual_tools.h>
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
+#include <message_filters/synchronizer.h>
+#include <message_filters/sync_policies/approximate_time.h>
 
 namespace rvt = rviz_visual_tools;
 
@@ -19,9 +21,12 @@ class OdomFilter {
     ros::NodeHandle private_node("~");
 
     private_node.getParam("tag_pos_cov", tag_pos_cov);
+    private_node.getParam("tag_ori_cov", tag_ori_cov);
     private_node.getParam("vo_pos_cov", vo_pos_cov);
-    private_node.getParam("vo_vel_cov", vo_pos_cov);
+    private_node.getParam("vo_ori_cov", vo_ori_cov);
+    private_node.getParam("vo_vel_cov", vo_vel_cov);
     private_node.getParam("uwb_pos_cov", uwb_pos_cov);
+    private_node.getParam("uwb_ori_cov", uwb_ori_cov);
     private_node.getParam("init_odom_yaw", init_odom_yaw);
     private_node.getParam("init_imu_yaw", init_imu_yaw);
     private_node.getParam("imu_ori_cov", imu_ori_cov);
@@ -30,42 +35,21 @@ class OdomFilter {
     private_node.getParam("distance_UWB_to_base_Y", distance_UWB_to_base_Y);
     private_node.getParam("distance_camera_to_base", distance_camera_to_base);
 
-    run();
-    init();
+    init_ros();
+    init_visual_tool();
+    ros::Duration(1).sleep();
+    check_data();
   }
 
-  void init() {
+  void init_visual_tool() {
 
     visual_tools_.reset(new rvt::RvizVisualTools("map", "/rviz_visual_tools"));
     visual_tools_->loadMarkerPub();  // create publisher before waiting
     visual_tools_->deleteAllMarkers();
 
-    fiducial0_W = Eigen::Translation3d(Eigen::Vector3d{0, 2.44, 0})
-        * Eigen::AngleAxisd(M_PI/2, Eigen::Vector3d::UnitZ())
-        * Eigen::AngleAxisd(M_PI/2, Eigen::Vector3d::UnitX());
-
-//    tf::poseEigenToTF(fiducial0_W, tf_WF);
-
-//    tf_BC.setIdentity();
-//    tf_BC.setOrigin(tf::Vector3{0.03, 0.01, 0});
-
-//    // Wait for initialization from fiducial.
-//    tf::StampedTransform map_to_odom_link;
-//    while (ros::ok()) { // TODO: This is a bad style, change this later.
-//      try {
-//        listener.lookupTransform("/odom", "/map",
-//                                 ros::Time(0), map_to_odom_link);
-//        break;
-//      } catch (tf::TransformException ex) {
-//        // Only start odometry if global orientation is detected.
-//        ROS_INFO("Wait for initialization from fiducial.");
-//        ros::Duration(0.1).sleep();
-//      }
-//    }
-//    ROS_INFO("Map to Odom initialized by fiducial.");
   }
 
-  void run() {
+  void init_ros() {
     vo_odom = node.advertise<nav_msgs::Odometry>("t265/odom", 10);
     uwb_odom = node.advertise<nav_msgs::Odometry>("dwm/odom", 10);
     global_uwb_odom = node.advertise<nav_msgs::Odometry>("dwm/global_odom", 10);
@@ -77,17 +61,47 @@ class OdomFilter {
         100, &OdomFilter::vo_odom_callback, this);
 //    uwb_odom_listener = node.subscribe("dwm_odom", 100, &OdomFilter::uwb_odom_callback, this);
     luwb_pos_listener = node.subscribe("lhs/dwm1001/tag",
-                                                          10, &OdomFilter::uwb_lpos_callback, this);
+        10, &OdomFilter::uwb_lpos_callback, this);
     ruwb_pos_listener = node.subscribe("rhs/dwm1001/tag",
-                                                          10, &OdomFilter::uwb_rpos_callback, this);
-    imu_listener = node.subscribe("rtabmap/imu", 100, &OdomFilter::imu_odom_callback, this);
+        10, &OdomFilter::uwb_rpos_callback, this);
+    imu_listener = node.subscribe("magic/imu", 50,
+        &OdomFilter::imu_odom_callback, this);
     fiducial_listener = node.subscribe("tag_detections", 100,
         &OdomFilter::fiducial_CB, this);
 
-    pub_pos_timer_ = node.createTimer(ros::Duration(1.0/20),
+    pub_pos_timer_ = node.createTimer(ros::Duration(1.0/10),
         &OdomFilter::uwb_callback, this);
+
+    button_listener = node.subscribe("rviz_visual_tools_gui", 100,
+                                     &OdomFilter::GlobalDataControl, this);
+
+// Failed to triger callback for unknown reason. Do not use Synchronizer for now
+//    typedef message_filters::sync_policies::ApproximateTime<geometry_msgs
+//    ::PointStamped, geometry_msgs::PointStamped> MySyncPolicy;
+//    MySyncPolicy my_sync_policy(100);
+//    my_sync_policy.setInterMessageLowerBound(0, ros::Duration(1));
+//    message_filters::Subscriber<geometry_msgs::PointStamped> luwb_sync(node,
+//        "lhs/dwm1001/tag", 100);
+//    message_filters::Subscriber<geometry_msgs::PointStamped> ruwb_sync(node,
+//        "rhs/dwm1001/tag", 100);
+//    message_filters::Synchronizer<MySyncPolicy> sync(static_cast<const MySyncPolicy &>(my_sync_policy),
+//                                                     luwb_sync, ruwb_sync);
+//    sync.registerCallback(boost::bind(&OdomFilter::uwb_callback, this, _1, _2));
   }
 
+  void check_data() {
+
+  }
+
+  void GlobalDataControl(const sensor_msgs::Joy::ConstPtr& joy_msg) {
+    send_global_data = !send_global_data;
+    if (send_global_data)
+      ROS_INFO("Start sending global data (Fiducial detection/IMU).");
+    else
+      ROS_INFO("Stop sending global data (Fiducial detection/IMU).");
+  }
+
+  // Visual Odometry goes into local EKF.
   void vo_odom_callback(const nav_msgs::Odometry::ConstPtr& msg) {
     if (first_vo) {
       first_vo = false;
@@ -151,7 +165,7 @@ class OdomFilter {
                                     0., 0., 0., 0., 0., 0.,
                                     0., 0., 0., 0., 0., 0.,
                                     0., 0., 0., 0., 0., 0.,
-                                    0., 0., 0., 0., 0., vo_pos_cov};
+                                    0., 0., 0., 0., 0., vo_ori_cov};
 
     modified_msg.twist.covariance = {vo_vel_cov, 0., 0., 0., 0., 0.,
                                      0., vo_vel_cov, 0., 0., 0., 0.,
@@ -163,16 +177,16 @@ class OdomFilter {
   }
 
   void uwb_lpos_callback(const geometry_msgs::PointStamped::ConstPtr& msg) {
-    luwb_pos_O = Eigen::Vector3d(msg->point.x, msg->point.y, msg->point.z);
-    if (first_f) // Do nothing if fiducial not initialized.
-      return;
-
-    // Record the initial data report.
-    if (first_luwb < 5) {
-      first_luwb ++;
-      first_luwb_pos = Eigen::Vector3d(msg->point.x, msg->point.y, msg->point.z);
-      return;
-    }
+    luwb_pos_O = Eigen::Vector3d(msg->point.x, msg->point.y-0.5, msg->point.z);
+//    if (first_f) // Do nothing if fiducial not initialized.
+//      return;
+//
+//    // Record the initial data report.
+//    if (first_luwb < 5) {
+//      first_luwb ++;
+//      first_luwb_pos = Eigen::Vector3d(msg->point.x, msg->point.y, msg->point.z);
+//      return;
+//    }
 
 //    { // Transform UWB in odom frame and send to EKF in local_msg.
 //      nav_msgs::Odometry local_msg;
@@ -262,11 +276,15 @@ class OdomFilter {
   }
 
   void uwb_rpos_callback(const geometry_msgs::PointStamped::ConstPtr& msg) {
-    ruwb_pos_O = Eigen::Vector3d(msg->point.x, msg->point.y, msg->point.z);
+    ruwb_pos_O = Eigen::Vector3d(msg->point.x, msg->point.y-0.5, msg->point.z);
   }
 
+  // UWB data goes to global EKF.
   void uwb_callback(const ros::TimerEvent &event) {
-    { // Transform UWB in map frame and send to EKF in global_msg.
+    if (!send_global_data)
+      return;
+
+    { // Transform UWB data to map frame and send to global EKF.
       nav_msgs::Odometry global_msg;
       global_msg.header.stamp = ros::Time::now();
       global_msg.header.frame_id = "map";
@@ -297,8 +315,8 @@ class OdomFilter {
                                     0., uwb_pos_cov, 0., 0., 0., 0.,
                                     0., 0., 0., 0., 0., 0.,
                                     0., 0., 0., 0., 0., 0.,
-                                    0., 0., 10., 0., 0., 0.,
-                                    0., 0., 0., 0., 0., uwb_pos_cov};
+                                    0., 0., 0., 0., 0., 0.,
+                                    0., 0., 0., 0., 0., uwb_ori_cov};
 
       global_uwb_odom.publish(global_msg);
 
@@ -323,6 +341,7 @@ class OdomFilter {
     }
   }
 
+  // Deprecated.
   void uwb_odom_callback(const nav_msgs::Odometry::ConstPtr& msg) {
     if (first_uwb < 5) {
       first_uwb ++;
@@ -383,6 +402,8 @@ class OdomFilter {
     return euler[0];
   }
 
+  // IMU should be used in global and local EKF.
+  // For now, only local EKF uses IMU data.
   void imu_odom_callback(const sensor_msgs::Imu::ConstPtr& msg) {
     // Throw away first several imu data.
     if (first_imu < 20) {
@@ -404,14 +425,12 @@ class OdomFilter {
       modified_msg.header.frame_id = "d435_imu_optical_frame";
 
       Eigen::Quaterniond q_now(msg->orientation.w, msg->orientation.x, msg->orientation.y, msg->orientation.z);
-//  Eigen::Quaterniond q_diff = q_first.inverse() * q_now;
-      Eigen::Quaterniond q_diff = Eigen::Quaterniond(
-          Eigen::AngleAxisd(-imu_init_val+init_imu_yaw, Eigen::Vector3d::UnitZ())) *
-              q_now;
-      modified_msg.orientation.w = q_diff.w();
-      modified_msg.orientation.x = q_diff.x();
-      modified_msg.orientation.y = q_diff.y();
-      modified_msg.orientation.z = q_diff.z();
+      // IMU offset is not applicable here. Because in local EKF, IMU data is
+      // in relative mode (subtract the first imu data is done in EKF).
+      modified_msg.orientation.w = q_now.w();
+      modified_msg.orientation.x = q_now.x();
+      modified_msg.orientation.y = q_now.y();
+      modified_msg.orientation.z = q_now.z();
 
       modified_msg.orientation_covariance = {imu_ori_cov, 0., 0.,
                                              0., imu_ori_cov, 0.,
@@ -428,13 +447,14 @@ class OdomFilter {
     { // Global imu data: represent base_link orientation on map frame.
       sensor_msgs::Imu global_imu_msg = *msg;
       global_imu_msg.header.stamp = ros::Time::now();
-      global_imu_msg.header.frame_id = "base_link";
+      global_imu_msg.header.frame_id = "d435_imu_optical_frame";
 
       Eigen::Quaterniond q_now(msg->orientation.w, msg->orientation.x, msg->orientation.y, msg->orientation.z);
+      // The q_diff represents no rotation when the imu data first came in.
       Eigen::Quaterniond q_diff = Eigen::Quaterniond(
           Eigen::AngleAxisd(imu_init_val, Eigen::Vector3d::UnitZ())) * q_now;
       Eigen::Quaterniond q_base_W = Eigen::Quaterniond(
-          Eigen::AngleAxisd(init_odom_yaw, Eigen::Vector3d::UnitZ())) * q_diff;
+          Eigen::AngleAxisd(init_imu_yaw, Eigen::Vector3d::UnitZ())) * q_diff;
       global_imu_msg.orientation.w = q_base_W.w();
       global_imu_msg.orientation.x = q_base_W.x();
       global_imu_msg.orientation.y = q_base_W.y();
@@ -453,7 +473,12 @@ class OdomFilter {
     }
   }
 
+  // Fiducial data is used to initialize the odom frame. Not used in any EKF
+  // yet.
   void fiducial_CB(const apriltag_ros::AprilTagDetectionArray::ConstPtr& tag_array) {
+    if (!send_global_data)
+      return;
+
     if (tag_array->detections.empty())
       return;
 
@@ -465,14 +490,14 @@ class OdomFilter {
     tf::Transform tf_CF;
     tf::poseMsgToTF(tag_array->detections[0].pose.pose.pose, tf_CF);
     tf_broadcaster_.sendTransform(tf::StampedTransform(tf_CF,
-        ros::Time::now(), "t265_fisheye1_optical_frame", "detected_fiducial"));
+        ros::Time::now(), "d435_correct", "detected_fiducial"));
 
     tf::StampedTransform tf_WF;
     tf::StampedTransform tf_BC;
     try {
       listener.lookupTransform("/map", "/fiducial0",
                                ros::Time(0), tf_WF);
-      listener.lookupTransform("/base_link", "/t265_fisheye1_optical_frame",
+      listener.lookupTransform("/base_link", "/d435_correct",
                                ros::Time(0), tf_BC);
     } catch (tf::TransformException ex) {
       return;
@@ -493,39 +518,39 @@ class OdomFilter {
       return;
     }
 
-//    double distance = tf_CF.getOrigin().length();
-//    if (distance > 3 || distance < 2)
-//      return;
-//    try {
+    double distance = tf_CF.getOrigin().length();
+    if (distance > 6 || distance < 1)
+      return;
+    try {
 //      tf::StampedTransform tf_OB;
 //      listener.lookupTransform("/odom", "/base_link",
 //                               ros::Time(0), tf_OB);
 //
 //      tf::Transform tf_WO = tf_WB * tf_OB.inverse();
-//
-//      nav_msgs::Odometry tag_msg;
-//      tag_msg.header.stamp = ros::Time::now();
-//      tag_msg.header.frame_id = "map";
-//      tag_msg.child_frame_id = "base_link";
-//      tag_msg.pose.pose.position.x = tf_WB.getOrigin().getX();
-//      tag_msg.pose.pose.position.y = tf_WB.getOrigin().getY();
-//      tag_msg.pose.pose.position.z = 0;
-//      tf::Quaternion q_WB = tf_WB.getRotation();
-//      tag_msg.pose.pose.orientation.x = q_WB.x();
-//      tag_msg.pose.pose.orientation.y = q_WB.y();
-//      tag_msg.pose.pose.orientation.z = q_WB.z();
-//      tag_msg.pose.pose.orientation.w = q_WB.w();
-//      tag_msg.pose.covariance = {tag_pos_cov, 0., 0., 0., 0., 0.,
-//                                      0., tag_pos_cov, 0., 0., 0., 0.,
-//                                      0., 0., 0., 0., 0., 0.,
-//                                      0., 0., 0., 0., 0., 0.,
-//                                      0., 0., 0., 0., 0., 0.,
-//                                      0., 0., 0., 0., 0., 0.};
-//
-//      tag_odom.publish(tag_msg);
-//    } catch (tf::TransformException ex) {
-//      return;
-//    }
+
+      nav_msgs::Odometry tag_msg;
+      tag_msg.header.stamp = ros::Time::now();
+      tag_msg.header.frame_id = "map";
+      tag_msg.child_frame_id = "base_link";
+      tag_msg.pose.pose.position.x = tf_WB.getOrigin().getX();
+      tag_msg.pose.pose.position.y = tf_WB.getOrigin().getY();
+      tag_msg.pose.pose.position.z = 0;
+      tf::Quaternion q_WB = tf_WB.getRotation();
+      tag_msg.pose.pose.orientation.x = q_WB.x();
+      tag_msg.pose.pose.orientation.y = q_WB.y();
+      tag_msg.pose.pose.orientation.z = q_WB.z();
+      tag_msg.pose.pose.orientation.w = q_WB.w();
+      tag_msg.pose.covariance = {tag_pos_cov, 0., 0., 0., 0., 0.,
+                                      0., tag_pos_cov, 0., 0., 0., 0.,
+                                      0., 0., 0., 0., 0., 0.,
+                                      0., 0., 0., 0., 0., 0.,
+                                      0., 0., 0., 0., 0., 0.,
+                                      0., 0., 0., 0., 0., tag_ori_cov};
+
+      tag_odom.publish(tag_msg);
+    } catch (tf::TransformException ex) {
+      return;
+    }
   }
 
   ros::NodeHandle node;
@@ -542,6 +567,7 @@ class OdomFilter {
   ros::Subscriber ruwb_pos_listener;
   ros::Subscriber imu_listener;
   ros::Subscriber fiducial_listener;
+  ros::Subscriber button_listener;
   ros::Timer pub_pos_timer_;
 
   tf::TransformListener listener;
@@ -557,9 +583,12 @@ class OdomFilter {
   Eigen::Quaterniond q_first;
 
   double tag_pos_cov = 0.0;
+  double tag_ori_cov = 0.0;
   double vo_pos_cov = 0.0;
+  double vo_ori_cov = 0.0;
   double vo_vel_cov = 0.0;
   double uwb_pos_cov = 0.0;
+  double uwb_ori_cov = 0.0;
   double imu_ori_cov = 0.01;
   double init_odom_yaw = -1 * M_PI;
   double init_imu_yaw = -0.75 * M_PI;
@@ -568,6 +597,7 @@ class OdomFilter {
   double distance_UWB_to_base_Y = 0.28;
   double distance_camera_to_base = -0.20;
   const double distance_world_to_beacon_Y = 2.44;
+  bool send_global_data = true;
 
   Eigen::Matrix4d first_cam_odom = Eigen::Matrix4d::Identity();
   Eigen::Vector3d first_uwb_pos = Eigen::Vector3d::Zero();
